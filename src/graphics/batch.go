@@ -6,16 +6,16 @@ import (
 )
 
 const (
+	PositionSize = 2
+	ColorSize    = 4
+	TexCoordSize = 2
+	VertexSize   = PositionSize + ColorSize + TexCoordSize
+	Stride       = VertexSize * 4
+
 	maxQuads     = 1000
-	verticesSize = maxQuads * 4 * (2 + 4 + 2) // x,y + color + u,v
+	verticesSize = maxQuads * 4 * VertexSize
 	indicesSize  = maxQuads * 6
 )
-
-type Vertex struct {
-	Position mgl32.Vec2
-	Color    [4]uint8
-	TexCoord mgl32.Vec2
-}
 
 type Batch struct {
 	vao, vbo, ebo uint32
@@ -29,7 +29,7 @@ type Batch struct {
 }
 
 func NewBatch(shader *Shader) *Batch {
-	b := &Batch{
+	batch := &Batch{
 		vertices: make([]float32, verticesSize),
 		indices:  make([]uint32, indicesSize),
 		shader:   shader,
@@ -37,42 +37,53 @@ func NewBatch(shader *Shader) *Batch {
 
 	// Generate indices
 	for i, j := 0, 0; i < indicesSize; i, j = i+6, j+4 {
-		b.indices[i] = uint32(j)
-		b.indices[i+1] = uint32(j + 1)
-		b.indices[i+2] = uint32(j + 2)
-		b.indices[i+3] = uint32(j + 2)
-		b.indices[i+4] = uint32(j + 3)
-		b.indices[i+5] = uint32(j)
+		batch.indices[i] = uint32(j)
+		batch.indices[i+1] = uint32(j + 1)
+		batch.indices[i+2] = uint32(j + 2)
+		batch.indices[i+3] = uint32(j + 2)
+		batch.indices[i+4] = uint32(j + 3)
+		batch.indices[i+5] = uint32(j)
 	}
 
-	// Setup VAO/VBO/EBO
-	gl.GenVertexArrays(1, &b.vao)
-	gl.GenBuffers(1, &b.vbo)
-	gl.GenBuffers(1, &b.ebo)
+	// Generate buffers
+	gl.GenVertexArrays(1, &batch.vao)
+	gl.GenBuffers(1, &batch.vbo)
+	gl.GenBuffers(1, &batch.ebo)
 
-	gl.BindVertexArray(b.vao)
+	// Bind VAO first!
+	gl.BindVertexArray(batch.vao)
 
-	gl.BindBuffer(gl.ARRAY_BUFFER, b.vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(b.vertices)*4, nil, gl.DYNAMIC_DRAW)
+	// Setup VBO
+	gl.BindBuffer(gl.ARRAY_BUFFER, batch.vbo)
+	gl.BufferData(gl.ARRAY_BUFFER, len(batch.vertices)*4, nil, gl.DYNAMIC_DRAW)
 
-	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, b.ebo)
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(b.indices)*4, gl.Ptr(b.indices), gl.STATIC_DRAW)
+	// Setup EBO
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, batch.ebo)
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, len(batch.indices)*4, gl.Ptr(batch.indices), gl.STATIC_DRAW)
 
-	// Position attribute
-	gl.EnableVertexAttribArray(0)
-	gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 8*4, gl.PtrOffset(0))
+	// Get attribute locations (don't assume locations)
+	posLoc := uint32(gl.GetAttribLocation(shader.Program, gl.Str("a_position\x00")))
+	colorLoc := uint32(gl.GetAttribLocation(shader.Program, gl.Str("a_color\x00")))
+	texCoordLoc := uint32(gl.GetAttribLocation(shader.Program, gl.Str("a_texCoord\x00")))
 
-	// Color attribute
-	gl.EnableVertexAttribArray(1)
-	gl.VertexAttribPointer(1, 4, gl.UNSIGNED_BYTE, true, 8*4, gl.PtrOffset(2*4))
+	// Position attribute (vec2)
+	gl.EnableVertexAttribArray(posLoc)
+	gl.VertexAttribPointer(posLoc, 2, gl.FLOAT, false, Stride, gl.PtrOffset(0))
 
-	// Texture coordinate attribute
-	gl.EnableVertexAttribArray(2)
-	gl.VertexAttribPointer(2, 2, gl.FLOAT, false, 8*4, gl.PtrOffset(6*4))
+	// Color attribute (normalized ubyte)
+	gl.EnableVertexAttribArray(colorLoc)
+	gl.VertexAttribPointer(colorLoc, 4, gl.UNSIGNED_BYTE, true, Stride, gl.PtrOffset(2*4)) // After 2 floats
 
+	// Texture coordinate attribute (vec2)
+	gl.EnableVertexAttribArray(texCoordLoc)
+	gl.VertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, Stride, gl.PtrOffset(6*4)) // After 2 floats + 4 bytes
+
+	// Unbind VAO first, then other buffers
 	gl.BindVertexArray(0)
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0) // Note: EBO is stored in VAO state!
 
-	return b
+	return batch
 }
 
 func (batch *Batch) Begin() {
