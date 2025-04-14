@@ -75,60 +75,60 @@ func NewBatch(shader *Shader) *Batch {
 	return b
 }
 
-func (b *Batch) Begin() {
-	if b.drawing {
+func (batch *Batch) Begin() {
+	if batch.drawing {
 		return
 	}
-	b.drawing = true
-	b.vertexCount = 0
+	batch.drawing = true
+	batch.vertexCount = 0
 }
 
-func (b *Batch) End() {
-	if !b.drawing {
+func (batch *Batch) End() {
+	if !batch.drawing {
 		return
 	}
-	b.Flush()
-	b.drawing = false
+	batch.Flush()
+	batch.drawing = false
 }
 
-func (b *Batch) Flush() {
-	if b.vertexCount == 0 {
-		return
-	}
-
-	b.shader.Bind()
-	b.shader.SetUniformMatrix4fv("u_projection", &b.projection[0])
-	b.shader.SetUniform1i("u_texture", 0)
-
-	if b.texture != nil {
-		b.texture.Bind(0)
-	}
-
-	gl.BindVertexArray(b.vao)
-	gl.BindBuffer(gl.ARRAY_BUFFER, b.vbo)
-	gl.BufferSubData(gl.ARRAY_BUFFER, 0, b.vertexCount*8*4, gl.Ptr(b.vertices))
-
-	gl.DrawElements(gl.TRIANGLES, int32(b.vertexCount/4*6), gl.UNSIGNED_INT, nil)
-
-	b.vertexCount = 0
-}
-
-func (b *Batch) SetProjection(projection mgl32.Mat4) {
-	b.projection = projection
-}
-
-func (b *Batch) Draw(texture *Texture, x, y, width, height float32) {
-	if !b.drawing {
+func (batch *Batch) Flush() {
+	if batch.vertexCount == 0 {
 		return
 	}
 
-	if b.texture != texture {
-		b.Flush()
-		b.texture = texture
+	batch.shader.Bind()
+	batch.shader.SetUniformMatrix4fv("u_projection", &batch.projection[0])
+	batch.shader.SetUniform1i("u_texture", 0)
+
+	if batch.texture != nil {
+		batch.texture.Bind(0)
 	}
 
-	if b.vertexCount >= maxQuads*4 {
-		b.Flush()
+	gl.BindVertexArray(batch.vao)
+	gl.BindBuffer(gl.ARRAY_BUFFER, batch.vbo)
+	gl.BufferSubData(gl.ARRAY_BUFFER, 0, batch.vertexCount*8*4, gl.Ptr(batch.vertices))
+
+	gl.DrawElements(gl.TRIANGLES, int32(batch.vertexCount/4*6), gl.UNSIGNED_INT, nil)
+
+	batch.vertexCount = 0
+}
+
+func (batch *Batch) SetProjection(projection mgl32.Mat4) {
+	batch.projection = projection
+}
+
+func (batch *Batch) Draw(texture *Texture, x, y, width, height float32) {
+	if !batch.drawing {
+		return
+	}
+
+	if batch.texture != texture {
+		batch.Flush()
+		batch.texture = texture
+	}
+
+	if batch.vertexCount >= maxQuads*4 {
+		batch.Flush()
 	}
 
 	// Define quad vertices (positions, color white, texture coords)
@@ -139,22 +139,22 @@ func (b *Batch) Draw(texture *Texture, x, y, width, height float32) {
 		x + width, y, 1, 1, 1, 1, 1, 1,
 	}
 
-	copy(b.vertices[b.vertexCount*8:], vertices)
-	b.vertexCount += 4
+	copy(batch.vertices[batch.vertexCount*8:], vertices)
+	batch.vertexCount += 4
 }
 
-func (b *Batch) DrawRegion(region *TextureRegion, x, y, width, height float32) {
-	if !b.drawing {
+func (batch *Batch) DrawRegion(region *TextureRegion, x, y, width, height float32) {
+	if !batch.drawing {
 		return
 	}
 
-	if b.texture != region.Texture {
-		b.Flush()
-		b.texture = region.Texture
+	if batch.texture != region.Texture {
+		batch.Flush()
+		batch.texture = region.Texture
 	}
 
-	if b.vertexCount >= maxQuads*4 {
-		b.Flush()
+	if batch.vertexCount >= maxQuads*4 {
+		batch.Flush()
 	}
 
 	vertices := []float32{
@@ -164,12 +164,12 @@ func (b *Batch) DrawRegion(region *TextureRegion, x, y, width, height float32) {
 		x + width, y, 1, 1, 1, 1, region.U2, region.V2,
 	}
 
-	copy(b.vertices[b.vertexCount*8:], vertices)
-	b.vertexCount += 4
+	copy(batch.vertices[batch.vertexCount*8:], vertices)
+	batch.vertexCount += 4
 }
 
-func (b *Batch) Dispose() {
-	gl.DeleteVertexArrays(1, &b.vao)
-	gl.DeleteBuffers(1, &b.vbo)
-	gl.DeleteBuffers(1, &b.ebo)
+func (batch *Batch) Dispose() {
+	gl.DeleteVertexArrays(1, &batch.vao)
+	gl.DeleteBuffers(1, &batch.vbo)
+	gl.DeleteBuffers(1, &batch.ebo)
 }
