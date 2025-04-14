@@ -182,7 +182,7 @@ func RunSafe(application Application, configuration WindowConfiguration) error {
 }
 
 func CreateDriver(application Application, configuration WindowConfiguration) *Driver {
-	driver := &Driver{
+	return &Driver{
 		App:                 application,
 		Input:               &InputHandler{},
 		configuration:       configuration,
@@ -190,8 +190,6 @@ func CreateDriver(application Application, configuration WindowConfiguration) *D
 		startTime:           time.Now(),
 		lastFrame:           time.Now(),
 	}
-	application.Create(driver)
-	return driver
 }
 
 func (driver *Driver) Start() {
@@ -227,6 +225,8 @@ func (driver *Driver) Start() {
 	if err := gl.Init(); err != nil {
 		panic(err)
 	}
+
+	driver.App.Create(driver)
 
 	driver.running = true
 	driver.Input.Install(window)
