@@ -226,7 +226,12 @@ func (driver *Driver) Start() {
 		panic(err)
 	}
 
+	width, height := window.GetSize()
+	driver.Width = width
+	driver.Height = height
+
 	driver.App.Create(driver)
+	driver.App.Resize(driver, width, height)
 
 	driver.running = true
 	driver.Input.Install(window)
