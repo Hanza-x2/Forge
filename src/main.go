@@ -40,7 +40,8 @@ func init() {
 }
 
 func main() {
-	configuration := CreateConfiguration()
-	driver := CreateDriver(&App{}, *configuration)
-	driver.Start()
+	configuration := DefaultConfig()
+	if err := RunSafe(&App{}, configuration); err != nil {
+		log.Fatalf("Failed to run application: %v", err)
+	}
 }

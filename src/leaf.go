@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"log"
 	"time"
 )
 
@@ -11,6 +12,7 @@ type WindowConfiguration struct {
 	Width                   int
 	Height                  int
 	Resizable               bool
+	Decorated               bool
 	OpenGLVersionMajor      int
 	OpenGLVersionMinor      int
 	OpenGLProfile           int
@@ -153,18 +155,30 @@ func glfwBool(value bool) int {
 	return glfw.False
 }
 
-func CreateConfiguration() *WindowConfiguration {
-	return &WindowConfiguration{
+func DefaultConfig() WindowConfiguration {
+	return WindowConfiguration{
 		Title:                   "Leaf",
 		Width:                   800,
 		Height:                  600,
 		Resizable:               true,
+		Decorated:               true,
 		OpenGLVersionMajor:      3,
 		OpenGLVersionMinor:      3,
 		OpenGLProfile:           glfw.OpenGLCoreProfile,
 		OpenGLForwardCompatible: true,
 		TargetFPS:               60,
 	}
+}
+
+func RunSafe(application Application, configuration WindowConfiguration) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Recovered from panic: %v", r)
+		}
+	}()
+	driver := CreateDriver(application, configuration)
+	driver.Start()
+	return nil
 }
 
 func CreateDriver(application Application, configuration WindowConfiguration) *Driver {
@@ -192,6 +206,7 @@ func (driver *Driver) Start() {
 
 	configuration := driver.configuration
 	glfw.WindowHint(glfw.Resizable, glfwBool(configuration.Resizable))
+	glfw.WindowHint(glfw.Decorated, glfwBool(configuration.Decorated))
 	glfw.WindowHint(glfw.ContextVersionMajor, configuration.OpenGLVersionMajor)
 	glfw.WindowHint(glfw.ContextVersionMinor, configuration.OpenGLVersionMinor)
 	glfw.WindowHint(glfw.OpenGLProfile, configuration.OpenGLProfile)
