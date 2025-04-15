@@ -1,8 +1,8 @@
 package main
 
 import (
-	"GoLeaf/graphics"
-	"GoLeaf/graphics/viewports"
+	"GoForge/graphics"
+	"GoForge/graphics/viewports"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"log"

@@ -1,4 +1,4 @@
-module GoLeaf
+module GoForge
 
 go 1.24
 
