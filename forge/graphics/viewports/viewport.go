@@ -1,7 +1,7 @@
 package viewports
 
 import (
-	"GoForge/graphics"
+	"forgejo.max7.fun/m.alkhatib/GoForge/graphics"
 )
 
 type Viewport interface {

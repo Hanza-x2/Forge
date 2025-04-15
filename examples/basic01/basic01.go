@@ -1,9 +1,10 @@
 package basic01
 
 import (
-	"forgejo.max7.fun/m.alkhatib/GoForge/forge"
+	forge "forgejo.max7.fun/m.alkhatib/GoForge"
 	"forgejo.max7.fun/m.alkhatib/GoForge/forge/graphics"
 	"forgejo.max7.fun/m.alkhatib/GoForge/forge/graphics/viewports"
+	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"log"
 	"runtime"

@@ -1,4 +1,4 @@
-module GoForge
+module forgejo.max7.fun/m.alkhatib/GoForge
 
 go 1.24
 

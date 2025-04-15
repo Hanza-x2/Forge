@@ -1,7 +1,7 @@
 package viewports
 
 import (
-	"GoForge/graphics"
+	"forgejo.max7.fun/m.alkhatib/GoForge/graphics"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 )
