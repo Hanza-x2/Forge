@@ -25,6 +25,7 @@ type Batch struct {
 	indices       []uint32
 	color         float32
 	vertexCount   int
+	pixel         *TextureRegion
 	texture       *Texture
 	shader        *Shader
 	projection    mgl32.Mat4
@@ -68,12 +69,33 @@ void main() {
 	return shader
 }
 
+func createDefaultPixel() *TextureRegion {
+	var textureID uint32
+	gl.GenTextures(1, &textureID)
+	gl.BindTexture(gl.TEXTURE_2D, textureID)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	pixel := &Texture{
+		ID:     textureID,
+		Width:  1,
+		Height: 1,
+	}
+
+	data := []uint8{255, 255, 255, 255}
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(data))
+	return NewTextureRegion(pixel)
+}
+
 func NewBatch() *Batch {
+	pixel := createDefaultPixel()
 	shader := createDefaultShader()
 	batch := &Batch{
 		vertices: make([]float32, verticesSize),
 		indices:  make([]uint32, indicesSize),
 		shader:   shader,
+		pixel:    pixel,
 	}
 	batch.SetColor(1, 1, 1, 1)
 
@@ -169,6 +191,10 @@ func (batch *Batch) SetProjection(projection mgl32.Mat4) {
 		batch.Flush()
 	}
 	batch.projection = projection
+}
+
+func (batch *Batch) Fill(x, y, width, height float32) {
+	batch.DrawRegion(batch.pixel, x, y, width, height)
 }
 
 func (batch *Batch) Draw(texture *Texture, x, y, width, height float32) {
