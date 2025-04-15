@@ -4,7 +4,6 @@ import (
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"log"
-	"math"
 )
 
 const (
@@ -97,7 +96,7 @@ func NewBatch() *Batch {
 		shader:   shader,
 		pixel:    pixel,
 	}
-	batch.SetColor(1, 1, 1, 1)
+	batch.SetColor(WHITE)
 
 	for i, j := 0, 0; i < indicesSize; i, j = i+6, j+4 {
 		batch.indices[i] = uint32(j)
@@ -140,12 +139,16 @@ func NewBatch() *Batch {
 	return batch
 }
 
-func (batch *Batch) SetColor(r, g, b, a float32) {
-	red := uint32(r * 255)
-	green := uint32(g * 255)
-	blue := uint32(b * 255)
-	alpha := uint32(a * 255)
-	batch.color = math.Float32frombits((alpha << 24) | (blue << 16) | (green << 8) | red)
+func (batch *Batch) SetColor(color float32) {
+	batch.color = color
+}
+
+func (batch *Batch) SetColorRGBA(r, g, b, a float32) {
+	batch.SetColor(ColorFromRGBA(r, g, b, a))
+}
+
+func (batch *Batch) SetColorHEX(hex uint32) {
+	batch.SetColor(ColorFromHEX(hex))
 }
 
 func (batch *Batch) GetColor() float32 {
