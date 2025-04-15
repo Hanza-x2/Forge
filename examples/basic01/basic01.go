@@ -1,9 +1,9 @@
-package examples
+package basic01
 
 import (
-	"forgejo.max7.fun/m.alkhatib/GoForge"
-	"forgejo.max7.fun/m.alkhatib/GoForge/graphics"
-	"forgejo.max7.fun/m.alkhatib/GoForge/graphics/viewports"
+	"forgejo.max7.fun/m.alkhatib/GoForge/forge"
+	"forgejo.max7.fun/m.alkhatib/GoForge/forge/graphics"
+	"forgejo.max7.fun/m.alkhatib/GoForge/forge/graphics/viewports"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"log"
 	"runtime"
@@ -20,7 +20,7 @@ func (app *App) Create(driver *Driver) {
 	app.driver = driver
 
 	var err error
-	app.rock, err = graphics.NewTexture("assets/rock.png")
+	app.rock, err = graphics.NewTexture("examples/assets/rock.png")
 	if err != nil {
 		log.Fatalf("Failed to load texture: %v", err)
 	}
