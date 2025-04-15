@@ -148,6 +148,10 @@ func (batch *Batch) SetColor(r, g, b, a float32) {
 	batch.color = math.Float32frombits((alpha << 24) | (blue << 16) | (green << 8) | red)
 }
 
+func (batch *Batch) GetColor() float32 {
+	return batch.color
+}
+
 func (batch *Batch) Begin() {
 	if batch.drawing {
 		return
