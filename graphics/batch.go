@@ -260,6 +260,44 @@ func (batch *Batch) LineEx(x1, y1, c1, x2, y2, c2, stroke float32) {
 	)
 }
 
+func (batch *Batch) LineRect(x, y, width, height, stroke float32) {
+	color := batch.color
+	batch.LineEx(x, y, color, x+width, y, color, stroke)
+	batch.LineEx(x+width, y, color, x+width, y+height, color, stroke)
+	batch.LineEx(x+width, y+height, color, x, y+height, color, stroke)
+	batch.LineEx(x, y+height, color, x, y, color, stroke)
+}
+
+func (batch *Batch) LineRectEx(x, y, originX, originY, width, height, scaleX, scaleY, rotation, c1, c2, c3, c4, stroke float32) {
+	rad := float64(rotation * math.Pi / 180)
+	cos := float32(math.Cos(rad))
+	sin := float32(math.Sin(rad))
+	fx := -originX
+	fy := -originY
+	fx2 := width - originX
+	fy2 := height - originY
+	if scaleX != 1 || scaleY != 1 {
+		fx *= scaleX
+		fy *= scaleY
+		fx2 *= scaleX
+		fy2 *= scaleY
+	}
+	worldOriginX := x + originX
+	worldOriginY := y + originY
+	x1 := cos*fx - sin*fy + worldOriginX
+	y1 := sin*fx + cos*fy + worldOriginY
+	x2 := cos*fx2 - sin*fy + worldOriginX
+	y2 := sin*fx2 + cos*fy + worldOriginY
+	x3 := cos*fx2 - sin*fy2 + worldOriginX
+	y3 := sin*fx2 + cos*fy2 + worldOriginY
+	x4 := x1 + (x3 - x2)
+	y4 := y3 - (y2 - y1)
+	batch.LineEx(x1, y1, c1, x2, y2, c1, stroke)
+	batch.LineEx(x2, y2, c2, x3, y3, c2, stroke)
+	batch.LineEx(x3, y3, c3, x4, y4, c3, stroke)
+	batch.LineEx(x4, y4, c4, x1, y1, c4, stroke)
+}
+
 func (batch *Batch) FillQuad(x1, y1, x2, y2, x3, y3, x4, y4 float32) {
 	color := batch.color
 	batch.FillQuadEx(x1, y1, color, x2, y2, color, x3, y3, color, x4, y4, color)
