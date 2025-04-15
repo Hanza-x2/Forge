@@ -19,41 +19,7 @@ type App struct {
 func (app *App) Create(driver *Driver) {
 	app.driver = driver
 
-	shader, err := graphics.NewShader(
-		`#version 130
-
-in vec4 a_position;
-in vec4 a_color;
-in vec2 a_texCoord;
-
-uniform mat4 u_projection;
-
-out mediump vec4 v_color;
-out highp vec2 v_texCoords;
-
-void main() {
-    v_color = a_color;
-    v_color.a *= (255.0 / 254.0);
-    v_texCoords = a_texCoord;
-    gl_Position = u_projection * a_position;
-}`,
-		`#version 130
-
-in mediump vec4 v_color;
-in highp vec2 v_texCoords;
-
-uniform highp sampler2D u_texture;
-
-out vec4 fragColor;
-
-void main() {
-    fragColor = v_color * texture(u_texture, v_texCoords);
-}`,
-	)
-	if err != nil {
-		log.Fatalf("Failed to create shader: %v", err)
-	}
-
+	var err error
 	app.rock, err = graphics.NewTexture("assets/rock.png")
 	if err != nil {
 		log.Fatalf("Failed to load texture: %v", err)
@@ -62,7 +28,7 @@ void main() {
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 
-	app.batch = graphics.NewBatch(shader)
+	app.batch = graphics.NewBatch()
 	app.viewport = viewports.NewFitViewport(16, 9, driver.Width, driver.Height)
 
 	gl.Enable(gl.BLEND)

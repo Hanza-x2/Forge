@@ -3,6 +3,7 @@ package graphics
 import (
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
+	"log"
 	"math"
 )
 
@@ -30,7 +31,45 @@ type Batch struct {
 	drawing       bool
 }
 
-func NewBatch(shader *Shader) *Batch {
+func createDefaultShader() *Shader {
+	shader, err := NewShader(`
+#version 130
+
+in vec4 a_position;
+in vec4 a_color;
+in vec2 a_texCoord;
+
+uniform mat4 u_projection;
+
+out mediump vec4 v_color;
+out highp vec2 v_texCoords;
+
+void main() {
+    v_color = a_color;
+    v_color.a *= (255.0 / 254.0);
+    v_texCoords = a_texCoord;
+    gl_Position = u_projection * a_position;
+}`, `
+#version 130
+
+in mediump vec4 v_color;
+in highp vec2 v_texCoords;
+
+uniform highp sampler2D u_texture;
+
+out vec4 fragColor;
+
+void main() {
+    fragColor = v_color * texture(u_texture, v_texCoords);
+}`)
+	if err != nil {
+		log.Fatalf("Failed to create default shader: %v", err)
+	}
+	return shader
+}
+
+func NewBatch() *Batch {
+	shader := createDefaultShader()
 	batch := &Batch{
 		vertices: make([]float32, verticesSize),
 		indices:  make([]uint32, indicesSize),
@@ -183,4 +222,5 @@ func (batch *Batch) Dispose() {
 	gl.DeleteVertexArrays(1, &batch.vao)
 	gl.DeleteBuffers(1, &batch.vbo)
 	gl.DeleteBuffers(1, &batch.ebo)
+	batch.shader.Dispose()
 }
