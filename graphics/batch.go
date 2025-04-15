@@ -243,7 +243,7 @@ func (batch *Batch) Line(x1, y1, x2, y2, stroke float32) {
 }
 
 func (batch *Batch) LineEx(x1, y1, c1, x2, y2, c2, stroke float32) {
-	halfStroke := stroke / 2
+	halfStroke := (batch.spaceFactor * stroke) / 2
 	dX := x2 - x1
 	dY := y2 - y1
 	length := float32(math.Sqrt(float64(dX*dX + dY*dY)))
