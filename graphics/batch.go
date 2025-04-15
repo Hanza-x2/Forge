@@ -160,6 +160,10 @@ func (batch *Batch) GetColor() float32 {
 	return batch.color
 }
 
+func _vectorLength(x, y float32) float32 {
+	return float32(math.Sqrt(float64(x*x + y*y)))
+}
+
 func (batch *Batch) Begin() {
 	if batch.drawing {
 		return
@@ -235,6 +239,24 @@ func (batch *Batch) Push(
 
 	copy(batch.vertices[batch.vertexCount*VertexSize:], vertices)
 	batch.vertexCount += 4
+}
+
+func (batch *Batch) Line(x1, y1, x2, y2, stroke float32) {
+	color := batch.color
+	batch.LineEx(x1, y1, color, x2, y2, color, stroke)
+}
+
+func (batch *Batch) LineEx(x1, y1, c1, x2, y2, c2, stroke float32) {
+	halfStroke := (batch.spaceFactor * stroke) / 2
+	length := _vectorLength(x2-x1, y2-y1)
+	diffX := (x2 - x1) / length * halfStroke
+	diffY := (y2 - y1) / length * halfStroke
+	batch.FillQuadEx(
+		x1-diffX-diffY, y1-diffY+diffX, c1,
+		x1-diffX+diffY, y1-diffY-diffX, c1,
+		x2+diffX+diffY, y2+diffY-diffX, c2,
+		x2+diffX-diffY, y2+diffY+diffX, c2,
+	)
 }
 
 func (batch *Batch) FillQuad(x1, y1, x2, y2, x3, y3, x4, y4 float32) {
