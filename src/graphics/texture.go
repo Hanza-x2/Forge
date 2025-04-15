@@ -45,7 +45,6 @@ func NewTexture(filePath string) (*Texture, error) {
 	var textureID uint32
 	gl.GenTextures(1, &textureID)
 	gl.BindTexture(gl.TEXTURE_2D, textureID)
-
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
@@ -70,6 +69,18 @@ func NewTexture(filePath string) (*Texture, error) {
 		Width:  rgba.Rect.Size().X,
 		Height: rgba.Rect.Size().Y,
 	}, nil
+}
+
+func (texture *Texture) SetFilter(minFilter, magFilter int32) {
+	gl.BindTexture(gl.TEXTURE_2D, texture.ID)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter)
+}
+
+func (texture *Texture) SetWrap(wrapS, wrapT int32) {
+	gl.BindTexture(gl.TEXTURE_2D, texture.ID)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrapS)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrapT)
 }
 
 func (texture *Texture) Bind(unit uint32) {

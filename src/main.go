@@ -24,9 +24,7 @@ func (app *App) Create(driver *Driver) {
 	if err != nil {
 		log.Fatalf("Failed to load texture: %v", err)
 	}
-	app.rock.Bind(0)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	app.rock.SetFilter(gl.NEAREST, gl.NEAREST)
 
 	app.batch = graphics.NewBatch()
 	app.viewport = viewports.NewFitViewport(16, 9, driver.Width, driver.Height)
