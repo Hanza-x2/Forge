@@ -363,6 +363,84 @@ func (batch *Batch) DrawRegion(region *TextureRegion, x, y, width, height float3
 	)
 }
 
+func (batch *Batch) DrawRegionEx(
+	region *TextureRegion, x, y, originX, originY,
+	width, height, scaleX, scaleY, rotation float32,
+) {
+	worldOriginX := x + originX
+	worldOriginY := y + originY
+
+	fx := -originX
+	fy := -originY
+	fx2 := width - originX
+	fy2 := height - originY
+
+	if scaleX != 1 || scaleY != 1 {
+		fx *= scaleX
+		fy *= scaleY
+		fx2 *= scaleX
+		fy2 *= scaleY
+	}
+
+	p1x := fx
+	p1y := fy
+	p2x := fx
+	p2y := fy2
+	p3x := fx2
+	p3y := fy2
+	p4x := fx2
+	p4y := fy
+
+	var x1, y1, x2, y2, x3, y3, x4, y4 float32
+
+	if rotation != 0 {
+		cos := float32(math.Cos(float64(rotation)))
+		sin := float32(math.Sin(float64(rotation)))
+
+		x1 = p1x*cos - p1y*sin
+		y1 = p1x*sin + p1y*cos
+		x2 = p2x*cos - p2y*sin
+		y2 = p3x*sin + p2y*cos
+		x3 = p3x*cos - p3y*sin
+		y3 = p3x*sin + p3y*cos
+		x4 = x1 + (x3 - x2)
+		y4 = y3 - (y2 - y1)
+	} else {
+		x1 = p1x
+		y1 = p1y
+		x2 = p2x
+		y2 = p2y
+		x3 = p3x
+		y3 = p3y
+		x4 = p4x
+		y4 = p4y
+	}
+
+	x1 += worldOriginX
+	x2 += worldOriginX
+	x3 += worldOriginX
+	x4 += worldOriginX
+
+	y1 += worldOriginY
+	y2 += worldOriginY
+	y3 += worldOriginY
+	y4 += worldOriginY
+
+	u := region.U
+	v := region.V2
+	u2 := region.U2
+	v2 := region.V
+
+	color := batch.color
+	batch.Push(region.Texture,
+		x1, y1, color, u, v,
+		x2, y2, color, u, v2,
+		x3, y3, color, u2, v2,
+		x4, y4, color, u2, v,
+	)
+
+}
+
 func (batch *Batch) Dispose() {
 	gl.DeleteVertexArrays(1, &batch.vao)
 	gl.DeleteBuffers(1, &batch.vbo)
