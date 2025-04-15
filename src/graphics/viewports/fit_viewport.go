@@ -7,54 +7,49 @@ import (
 )
 
 type FitViewport struct {
-	Camera      *graphics.Camera
-	WorldWidth  float32
-	WorldHeight float32
-
-	screenX      int32
-	screenY      int32
-	screenWidth  int32
-	screenHeight int32
+	BaseViewport
 }
 
 func NewFitViewport(worldWidth, worldHeight float32, screenWidth, screenHeight int) *FitViewport {
-	vp := &FitViewport{
-		WorldWidth:  worldWidth,
-		WorldHeight: worldHeight,
-		Camera:      graphics.NewCamera(worldWidth, worldHeight),
+	viewport := &FitViewport{
+		BaseViewport: BaseViewport{
+			WorldWidth:  worldWidth,
+			WorldHeight: worldHeight,
+			Camera:      graphics.NewCamera(worldWidth, worldHeight),
+		},
 	}
-	vp.Update(screenWidth, screenHeight, true)
-	return vp
+	viewport.Update(screenWidth, screenHeight, true)
+	return viewport
 }
 
-func (v *FitViewport) Apply(centerCamera bool) {
-	gl.Viewport(v.screenX, v.screenY, v.screenWidth, v.screenHeight)
-	v.Camera.Width = v.WorldWidth
-	v.Camera.Height = v.WorldHeight
+func (viewport *FitViewport) Apply(centerCamera bool) {
+	gl.Viewport(viewport.screenX, viewport.screenY, viewport.screenWidth, viewport.screenHeight)
+	viewport.Camera.Width = viewport.WorldWidth
+	viewport.Camera.Height = viewport.WorldHeight
 	if centerCamera {
-		v.Camera.Position = mgl32.Vec2{v.WorldWidth / 2, v.WorldHeight / 2}
+		viewport.Camera.Position = mgl32.Vec2{viewport.WorldWidth / 2, viewport.WorldHeight / 2}
 	}
-	v.Camera.Update()
+	viewport.Camera.Update()
 }
 
-func (v *FitViewport) Update(screenWidth, screenHeight int, centerCamera bool) {
+func (viewport *FitViewport) Update(screenWidth, screenHeight int, centerCamera bool) {
 	targetRatio := float32(screenHeight) / float32(screenWidth)
-	sourceRatio := v.WorldHeight / v.WorldWidth
+	sourceRatio := viewport.WorldHeight / viewport.WorldWidth
 
 	scale := targetRatio
 	if targetRatio > sourceRatio {
-		scale = float32(screenWidth) / v.WorldWidth
+		scale = float32(screenWidth) / viewport.WorldWidth
 	} else {
-		scale = float32(screenHeight) / v.WorldHeight
+		scale = float32(screenHeight) / viewport.WorldHeight
 	}
 
-	scaledWidth := int32(v.WorldWidth * scale)
-	scaledHeight := int32(v.WorldHeight * scale)
+	scaledWidth := int32(viewport.WorldWidth * scale)
+	scaledHeight := int32(viewport.WorldHeight * scale)
 
-	v.screenX = (int32(screenWidth) - scaledWidth) / 2
-	v.screenY = (int32(screenHeight) - scaledHeight) / 2
-	v.screenWidth = scaledWidth
-	v.screenHeight = scaledHeight
+	viewport.screenX = (int32(screenWidth) - scaledWidth) / 2
+	viewport.screenY = (int32(screenHeight) - scaledHeight) / 2
+	viewport.screenWidth = scaledWidth
+	viewport.screenHeight = scaledHeight
 
-	v.Apply(centerCamera)
+	viewport.Apply(centerCamera)
 }

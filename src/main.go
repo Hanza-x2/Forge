@@ -13,7 +13,7 @@ type App struct {
 	driver   *Driver
 	batch    *graphics.Batch
 	rock     *graphics.Texture
-	viewport *viewports.FitViewport
+	viewport viewports.Viewport
 }
 
 func (app *App) Create(driver *Driver) {
@@ -76,7 +76,7 @@ func (app *App) Render(driver *Driver, delta float32) {
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	app.viewport.Apply(true)
-	projection := app.viewport.Camera.Matrix
+	projection := app.viewport.GetCamera().Matrix
 	app.batch.SetProjection(projection)
 
 	app.batch.Begin()
