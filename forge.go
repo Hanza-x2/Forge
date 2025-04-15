@@ -42,14 +42,14 @@ type Driver struct {
 }
 type KeyCallback func(key glfw.Key, action glfw.Action)
 type MouseButtonCallback func(button glfw.MouseButton, action glfw.Action)
-type MouseMoveCallback func(x, y float64)
-type MouseScrollCallback func(x, y float64)
+type MouseMoveCallback func(x, y float32)
+type MouseScrollCallback func(x, y float32)
 
 type InputHandler struct {
 	keys         [glfw.KeyLast + 1]bool
 	mouseButtons [glfw.MouseButtonLast + 1]bool
-	mouseX       float64
-	mouseY       float64
+	mouseX       float32
+	mouseY       float32
 
 	keyCallback         KeyCallback
 	mouseButtonCallback MouseButtonCallback
@@ -94,15 +94,15 @@ func (handler *InputHandler) IsMouseButtonPressed(button glfw.MouseButton) bool 
 	return handler.mouseButtons[button]
 }
 
-func (handler *InputHandler) GetMousePosition() (float64, float64) {
+func (handler *InputHandler) GetMousePosition() (float32, float32) {
 	return handler.mouseX, handler.mouseY
 }
 
-func (handler *InputHandler) GetMouseX() float64 {
+func (handler *InputHandler) GetMouseX() float32 {
 	return handler.mouseX
 }
 
-func (handler *InputHandler) GetMouseY() float64 {
+func (handler *InputHandler) GetMouseY() float32 {
 	return handler.mouseY
 }
 
@@ -135,16 +135,19 @@ func (handler *InputHandler) mouseButtonCallbackWrapper(_ *glfw.Window, button g
 }
 
 func (handler *InputHandler) mouseMoveCallbackWrapper(_ *glfw.Window, x, y float64) {
-	handler.mouseX, handler.mouseY = x, y
+	castX := float32(x)
+	castY := float32(y)
+	handler.mouseX = castX
+	handler.mouseY = castY
 
 	if handler.mouseMoveCallback != nil {
-		handler.mouseMoveCallback(x, y)
+		handler.mouseMoveCallback(castX, castY)
 	}
 }
 
 func (handler *InputHandler) mouseScrollCallbackWrapper(_ *glfw.Window, x, y float64) {
 	if handler.mouseScrollCallback != nil {
-		handler.mouseScrollCallback(x, y)
+		handler.mouseScrollCallback(float32(x), -float32(y))
 	}
 }
 
