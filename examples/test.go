@@ -1,9 +1,9 @@
-package main
+package examples
 
 import (
-	"GoForge/graphics"
-	"GoForge/graphics/viewports"
-	"github.com/go-gl/gl/v3.3-core/gl"
+	"forgejo.max7.fun/m.alkhatib/GoForge"
+	"forgejo.max7.fun/m.alkhatib/GoForge/graphics"
+	"forgejo.max7.fun/m.alkhatib/GoForge/graphics/viewports"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"log"
 	"runtime"
@@ -68,7 +68,7 @@ func init() {
 }
 
 func main() {
-	configuration := DefaultConfig()
+	configuration := forge.DefaultConfig()
 	configuration.Width = 800
 	configuration.Height = 450
 	if err := RunSafe(&App{}, configuration); err != nil {
