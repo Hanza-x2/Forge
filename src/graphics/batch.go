@@ -165,6 +165,9 @@ func (batch *Batch) Flush() {
 }
 
 func (batch *Batch) SetProjection(projection mgl32.Mat4) {
+	if !batch.drawing {
+		batch.Flush()
+	}
 	batch.projection = projection
 }
 
