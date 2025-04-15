@@ -206,6 +206,15 @@ func (batch *Batch) SetProjection(projection mgl32.Mat4) {
 	batch.spaceFactor = 2 / (projection[0] * float32(batch.driver.Width))
 }
 
+// Has to be called before doing any drawing *or heavy calculations* (Simple proxies may skip this)
+func (batch *Batch) valid() bool {
+	if !batch.drawing {
+		log.Print("Begin() has to be called before drawing.")
+		return false
+	}
+	return true
+}
+
 func (batch *Batch) Push(
 	texture *Texture,
 	x1, y1, c1, u1, v1,
@@ -213,7 +222,7 @@ func (batch *Batch) Push(
 	x3, y3, c3, u3, v3,
 	x4, y4, c4, u4, v4 float32,
 ) {
-	if !batch.drawing {
+	if !batch.valid() {
 		return
 	}
 
@@ -243,6 +252,9 @@ func (batch *Batch) Line(x1, y1, x2, y2, stroke float32) {
 }
 
 func (batch *Batch) LineEx(x1, y1, c1, x2, y2, c2, stroke float32) {
+	if !batch.valid() {
+		return
+	}
 	halfStroke := (batch.spaceFactor * stroke) / 2
 	dX := x2 - x1
 	dY := y2 - y1
@@ -269,6 +281,9 @@ func (batch *Batch) LineRect(x, y, width, height, stroke float32) {
 }
 
 func (batch *Batch) LineRectEx(x, y, originX, originY, width, height, scaleX, scaleY, rotation, stroke float32) {
+	if !batch.valid() {
+		return
+	}
 	rad := float64(rotation * math.Pi / 180)
 	cos := float32(math.Cos(rad))
 	sin := float32(math.Sin(rad))
@@ -336,6 +351,9 @@ func (batch *Batch) DrawEx(
 	srcX, srcY, srcWidth, srcHeight int,
 	flipX, flipY bool,
 ) {
+	if !batch.valid() {
+		return
+	}
 	worldOriginX := x + originX
 	worldOriginY := y + originY
 
@@ -435,6 +453,9 @@ func (batch *Batch) DrawRegionEx(
 	region *TextureRegion, x, y, originX, originY,
 	width, height, scaleX, scaleY, rotation float32,
 ) {
+	if !batch.valid() {
+		return
+	}
 	worldOriginX := x + originX
 	worldOriginY := y + originY
 
