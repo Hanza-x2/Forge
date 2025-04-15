@@ -1,6 +1,7 @@
 package graphics
 
 import (
+	forge "forgejo.max7.fun/m.alkhatib/GoForge"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"log"
@@ -24,10 +25,12 @@ type Batch struct {
 	vertices      []float32
 	indices       []uint32
 	color         float32
+	spaceFactor   float32
 	vertexCount   int
 	pixel         *TextureRegion
 	texture       *Texture
 	shader        *Shader
+	driver        *forge.Driver
 	projection    mgl32.Mat4
 	drawing       bool
 }
@@ -88,12 +91,13 @@ func createDefaultPixel() *TextureRegion {
 	return NewTextureRegion(pixel)
 }
 
-func NewBatch() *Batch {
+func NewBatch(driver *forge.Driver) *Batch {
 	pixel := createDefaultPixel()
 	shader := createDefaultShader()
 	batch := &Batch{
 		vertices: make([]float32, verticesSize),
 		indices:  make([]uint32, indicesSize),
+		driver:   driver,
 		shader:   shader,
 		pixel:    pixel,
 	}
@@ -199,6 +203,7 @@ func (batch *Batch) SetProjection(projection mgl32.Mat4) {
 		batch.Flush()
 	}
 	batch.projection = projection
+	batch.spaceFactor = 2 / projection[0] * float32(batch.driver.Width)
 }
 
 func (batch *Batch) Push(
