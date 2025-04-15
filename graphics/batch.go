@@ -193,8 +193,43 @@ func (batch *Batch) SetProjection(projection mgl32.Mat4) {
 	batch.projection = projection
 }
 
-func (batch *Batch) Fill(x, y, width, height float32) {
-	batch.DrawRegion(batch.pixel, x, y, width, height)
+func (batch *Batch) FillQuad(x, y, x2, y2 float32) {
+	color := batch.color
+	batch.FillQuadEx(x, y, x2, y2, color, color, color, color)
+}
+
+func (batch *Batch) FillQuadEx(x, y, x2, y2, c1, c2, c3, c4 float32) {
+	if !batch.drawing {
+		return
+	}
+
+	if batch.texture != batch.pixel.Texture {
+		batch.Flush()
+		batch.texture = batch.pixel.Texture
+	}
+
+	if batch.vertexCount >= maxQuads*4 {
+		batch.Flush()
+	}
+
+	vertices := []float32{
+		x, y, c1, 0, 1,
+		x, y2, c2, 0, 0,
+		x2, y2, c3, 1, 0,
+		x2, y, c4, 1, 1,
+	}
+
+	copy(batch.vertices[batch.vertexCount*8:], vertices)
+	batch.vertexCount += 4
+}
+
+func (batch *Batch) FillRect(x, y, width, height float32) {
+	color := batch.color
+	batch.FillRectEx(x, y, width, height, color, color, color, color)
+}
+
+func (batch *Batch) FillRectEx(x, y, width, height, c1, c2, c3, c4 float32) {
+	batch.FillQuadEx(x, y, x+width, y+height, c1, c2, c3, c4)
 }
 
 func (batch *Batch) Draw(texture *Texture, x, y, width, height float32) {
