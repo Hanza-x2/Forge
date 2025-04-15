@@ -296,13 +296,14 @@ func (batch *Batch) DrawEx(
 	var x1, y1, x2, y2, x3, y3, x4, y4 float32
 
 	if rotation != 0 {
-		cos := float32(math.Cos(float64(rotation)))
-		sin := float32(math.Sin(float64(rotation)))
+		rad := float64(rotation * math.Pi / 180)
+		cos := float32(math.Cos(rad))
+		sin := float32(math.Sin(rad))
 
 		x1 = p1x*cos - p1y*sin
 		y1 = p1x*sin + p1y*cos
 		x2 = p2x*cos - p2y*sin
-		y2 = p3x*sin + p2y*cos
+		y2 = p2x*sin + p2y*cos
 		x3 = p3x*cos - p3y*sin
 		y3 = p3x*sin + p3y*cos
 		x4 = x1 + (x3 - x2)
@@ -394,13 +395,14 @@ func (batch *Batch) DrawRegionEx(
 	var x1, y1, x2, y2, x3, y3, x4, y4 float32
 
 	if rotation != 0 {
-		cos := float32(math.Cos(float64(rotation)))
-		sin := float32(math.Sin(float64(rotation)))
+		rad := float64(rotation * math.Pi / 180)
+		cos := float32(math.Cos(rad))
+		sin := float32(math.Sin(rad))
 
 		x1 = p1x*cos - p1y*sin
 		y1 = p1x*sin + p1y*cos
 		x2 = p2x*cos - p2y*sin
-		y2 = p3x*sin + p2y*cos
+		y2 = p2x*sin + p2y*cos
 		x3 = p3x*cos - p3y*sin
 		y3 = p3x*sin + p3y*cos
 		x4 = x1 + (x3 - x2)
