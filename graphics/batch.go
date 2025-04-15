@@ -203,7 +203,7 @@ func (batch *Batch) SetProjection(projection mgl32.Mat4) {
 		batch.Flush()
 	}
 	batch.projection = projection
-	batch.spaceFactor = 2 / projection[0] * float32(batch.driver.Width)
+	batch.spaceFactor = 2 / (projection[0] * float32(batch.driver.Width))
 }
 
 func (batch *Batch) Push(
