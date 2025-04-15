@@ -4,6 +4,7 @@ import (
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"log"
+	"math"
 )
 
 const (
@@ -260,6 +261,97 @@ func (batch *Batch) Draw(texture *Texture, x, y, width, height float32) {
 		x+width, y+height, batch.color, 1, 0,
 		x+width, y, batch.color, 1, 1,
 	)
+}
+
+func (batch *Batch) DrawEx(
+	texture *Texture, x, y, originX, originY,
+	width, height, scaleX, scaleY, rotation float32,
+	srcX, srcY, srcWidth, srcHeight int,
+	flipX, flipY bool,
+) {
+	worldOriginX := x + originX
+	worldOriginY := y + originY
+
+	fx := -originX
+	fy := -originY
+	fx2 := width - originX
+	fy2 := height - originY
+
+	if scaleX != 1 || scaleY != 1 {
+		fx *= scaleX
+		fy *= scaleY
+		fx2 *= scaleX
+		fy2 *= scaleY
+	}
+
+	p1x := fx
+	p1y := fy
+	p2x := fx
+	p2y := fy2
+	p3x := fx2
+	p3y := fy2
+	p4x := fx2
+	p4y := fy
+
+	var x1, y1, x2, y2, x3, y3, x4, y4 float32
+
+	if rotation != 0 {
+		cos := float32(math.Cos(float64(rotation)))
+		sin := float32(math.Sin(float64(rotation)))
+
+		x1 = p1x*cos - p1y*sin
+		y1 = p1x*sin + p1y*cos
+		x2 = p2x*cos - p2y*sin
+		y2 = p3x*sin + p2y*cos
+		x3 = p3x*cos - p3y*sin
+		y3 = p3x*sin + p3y*cos
+		x4 = x1 + (x3 - x2)
+		y4 = y3 - (y2 - y1)
+	} else {
+		x1 = p1x
+		y1 = p1y
+		x2 = p2x
+		y2 = p2y
+		x3 = p3x
+		y3 = p3y
+		x4 = p4x
+		y4 = p4y
+	}
+
+	x1 += worldOriginX
+	x2 += worldOriginX
+	x3 += worldOriginX
+	x4 += worldOriginX
+
+	y1 += worldOriginY
+	y2 += worldOriginY
+	y3 += worldOriginY
+	y4 += worldOriginY
+
+	invTexWidth := 1.0 / float32(texture.Width)
+	invTexHeight := 1.0 / float32(texture.Height)
+
+	u := float32(srcX) * invTexWidth
+	v := float32((srcY)+srcHeight) * invTexHeight
+	u2 := float32((srcX)+srcWidth) * invTexWidth
+	v2 := float32(srcY) * invTexHeight
+
+	if flipX {
+		u, u2 = u2, u
+	}
+
+	if flipY {
+		v, v2 = v2, v
+	}
+
+	color := batch.color
+	batch.Push(texture,
+		x1, y1, color, u, v,
+		x2, y2, color, u, v2,
+		x3, y3, color, u2, v2,
+		x4, y4, color, u2, v,
+	)
+
 }
 
 func (batch *Batch) DrawRegion(region *TextureRegion, x, y, width, height float32) {
