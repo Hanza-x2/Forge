@@ -183,7 +183,7 @@ func (batch *Batch) Flush() {
 
 	gl.BindVertexArray(batch.vao)
 	gl.BindBuffer(gl.ARRAY_BUFFER, batch.vbo)
-	gl.BufferSubData(gl.ARRAY_BUFFER, 0, batch.vertexCount*8*4, gl.Ptr(batch.vertices))
+	gl.BufferSubData(gl.ARRAY_BUFFER, 0, batch.vertexCount*VertexSize*4, gl.Ptr(batch.vertices))
 
 	gl.DrawElements(gl.TRIANGLES, int32(batch.vertexCount/4*6), gl.UNSIGNED_INT, nil)
 
@@ -223,7 +223,7 @@ func (batch *Batch) FillQuadEx(x1, y1, c1, x2, y2, c2, x3, y3, c3, x4, y4, c4 fl
 		x4, y4, c4, 1, 1,
 	}
 
-	copy(batch.vertices[batch.vertexCount*8:], vertices)
+	copy(batch.vertices[batch.vertexCount*VertexSize:], vertices)
 	batch.vertexCount += 4
 }
 
@@ -256,7 +256,7 @@ func (batch *Batch) Draw(texture *Texture, x, y, width, height float32) {
 		x + width, y, batch.color, 1, 1,
 	}
 
-	copy(batch.vertices[batch.vertexCount*8:], vertices)
+	copy(batch.vertices[batch.vertexCount*VertexSize:], vertices)
 	batch.vertexCount += 4
 }
 
