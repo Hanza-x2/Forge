@@ -5,9 +5,17 @@ import (
 	"github.com/go-gl/mathgl/mgl32"
 )
 
+type Behavior interface {
+	Draw(actor Actor, batch *Graphics.Batch)
+	Act(actor Actor, delta float32)
+}
+
 type Actor interface {
 	GetName() string
 	SetName(name string)
+
+	GetBehavior() Behavior
+	SetBehavior(behavior Behavior)
 
 	GetX() float32
 	GetY() float32
@@ -53,16 +61,13 @@ type Actor interface {
 	ComputeTransform() mgl32.Mat3
 
 	Draw(batch *Graphics.Batch)
-	DrawSelf(batch *Graphics.Batch)
-
 	Act(delta float32)
-	ActSelf(delta float32)
-
 	Hit(x, y float32) bool
 }
 
 type BaseActor struct {
 	Name      string
+	Behavior  Behavior
 	X, Y      float32
 	Width     float32
 	Height    float32
@@ -93,6 +98,14 @@ func NewBaseActor() *BaseActor {
 
 func (actor *BaseActor) GetName() string {
 	return actor.Name
+}
+
+func (actor *BaseActor) GetBehavior() Behavior {
+	return actor.Behavior
+}
+
+func (actor *BaseActor) SetBehavior(behavior Behavior) {
+	actor.Behavior = behavior
 }
 
 func (actor *BaseActor) SetName(name string) {
@@ -304,7 +317,10 @@ func (actor *BaseActor) Draw(batch *Graphics.Batch) {
 
 	transform := actor.ComputeTransform()
 	batch.PushTransform(transform)
-	actor.DrawSelf(batch)
+
+	if actor.Behavior != nil {
+		actor.Behavior.Draw(actor, batch)
+	}
 
 	for _, child := range actor.Children {
 		child.Draw(batch)
@@ -313,21 +329,13 @@ func (actor *BaseActor) Draw(batch *Graphics.Batch) {
 	batch.PopTransform()
 }
 
-func (actor *BaseActor) DrawSelf(batch *Graphics.Batch) {
-	// Base actor doesn't draw anything
-	// Override this in child types
-}
-
 func (actor *BaseActor) Act(delta float32) {
-	actor.ActSelf(delta)
+	if actor.Behavior != nil {
+		actor.Behavior.Act(actor, delta)
+	}
 	for _, child := range actor.Children {
 		child.Act(delta)
 	}
-}
-
-func (actor *BaseActor) ActSelf(delta float32) {
-	// Base actor doesn't act
-	// Override this in child types
 }
 
 func (actor *BaseActor) Hit(x, y float32) bool {
