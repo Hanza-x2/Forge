@@ -190,12 +190,17 @@ func (actor *BaseActor) GetParent() Actor {
 }
 
 func (actor *BaseActor) SetParent(parent Actor) {
+	if actor.Parent == parent {
+		return
+	}
 	if actor.Parent != nil {
 		actor.Parent.RemoveChild(actor)
 	}
 	actor.Parent = parent
 	if parent != nil {
-		parent.AddChild(actor)
+		actor.stage = parent.GetStage()
+	} else {
+		actor.stage = nil
 	}
 }
 
@@ -211,13 +216,12 @@ func (actor *BaseActor) SetStage(stage *Stage) {
 }
 
 func (actor *BaseActor) AddChild(child Actor) {
-	parent := child.GetParent()
-	if parent != nil {
-		parent.RemoveChild(child)
+	if currentParent := child.GetParent(); currentParent != nil {
+		currentParent.RemoveChild(child)
 	}
+	actor.Children = append(actor.Children, child)
 	child.SetParent(actor)
 	child.SetStage(actor.stage)
-	actor.Children = append(actor.Children, child)
 }
 
 func (actor *BaseActor) RemoveChild(child Actor) bool {

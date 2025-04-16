@@ -8,7 +8,7 @@ import (
 )
 
 type Stage struct {
-	Root      Actor
+	Root      BaseActor
 	Actors    []Actor
 	Batch     *Graphics.Batch
 	Viewport  Viewports.Viewport
@@ -17,7 +17,7 @@ type Stage struct {
 
 func NewStage(viewport Viewports.Viewport, batch *Graphics.Batch) *Stage {
 	stage := &Stage{
-		Root: &BaseActor{
+		Root: BaseActor{
 			ScaleX:   1,
 			ScaleY:   1,
 			Visible:  true,
@@ -28,7 +28,7 @@ func NewStage(viewport Viewports.Viewport, batch *Graphics.Batch) *Stage {
 		Viewport: viewport,
 		Actors:   make([]Actor, 0),
 	}
-	stage.Root.SetStage(stage)
+	stage.Root.stage = stage
 	return stage
 }
 
