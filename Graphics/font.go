@@ -8,12 +8,15 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"text/scanner"
 )
 
 type Font struct {
 	Descriptor *Descriptor
 	Pages      map[int]*TextureRegion
+	glyphCache map[rune]*TextureRegion
+	cacheMutex sync.Mutex
 }
 
 type Descriptor struct {
@@ -356,6 +359,7 @@ func ReadFont(reader io.Reader, textureDir string) (*Font, error) {
 	font := Font{
 		Descriptor: desc,
 		Pages:      make(map[int]*TextureRegion),
+		glyphCache: make(map[rune]*TextureRegion),
 	}
 
 	for id, page := range desc.Pages {
@@ -368,6 +372,38 @@ func ReadFont(reader io.Reader, textureDir string) (*Font, error) {
 	}
 
 	return &font, nil
+}
+
+func (font *Font) getGlyphRegion(ch rune) *TextureRegion {
+	font.cacheMutex.Lock()
+	defer font.cacheMutex.Unlock()
+
+	if region, exists := font.glyphCache[ch]; exists {
+		return region
+	}
+
+	char, exists := font.Descriptor.Chars[ch]
+	if !exists {
+		return nil
+	}
+
+	page, exists := font.Pages[char.Page]
+	if !exists {
+		return nil
+	}
+
+	region := &TextureRegion{
+		Texture: page.Texture,
+		U:       float32(char.X) / float32(font.Descriptor.Common.ScaleW),
+		V:       float32(char.Y) / float32(font.Descriptor.Common.ScaleH),
+		U2:      float32(char.X+char.Width) / float32(font.Descriptor.Common.ScaleW),
+		V2:      float32(char.Y+char.Height) / float32(font.Descriptor.Common.ScaleH),
+		Width:   char.Width,
+		Height:  char.Height,
+	}
+
+	font.glyphCache[ch] = region
+	return region
 }
 
 func closeChecked(c io.Closer, err *error) {
@@ -435,19 +471,9 @@ func (font *Font) DrawEx(batch *Batch, text string, x, y float32, start, end int
 			}
 		}
 
-		page, exists := font.Pages[char.Page]
-		if !exists {
+		charRegion := font.getGlyphRegion(ch)
+		if charRegion == nil {
 			continue
-		}
-
-		charRegion := &TextureRegion{
-			Texture: page.Texture,
-			U:       float32(char.X) / float32(font.Descriptor.Common.ScaleW),
-			V:       float32(char.Y) / float32(font.Descriptor.Common.ScaleH),
-			U2:      float32(char.X+char.Width) / float32(font.Descriptor.Common.ScaleW),
-			V2:      float32(char.Y+char.Height) / float32(font.Descriptor.Common.ScaleH),
-			Width:   char.Width,
-			Height:  char.Height,
 		}
 
 		posX := currentX + float32(char.XOffset+kerning)
