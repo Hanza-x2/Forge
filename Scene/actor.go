@@ -3,6 +3,7 @@ package Scene
 import (
 	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics"
 	"github.com/go-gl/mathgl/mgl32"
+	"math"
 )
 
 type Behavior interface {
@@ -212,6 +213,37 @@ func transformCoordinate(vecX, vecY float32, mat mgl32.Mat3) mgl32.Vec2 {
 	return mgl32.Vec2{x, y}
 }
 
+func (actor *Actor) GetWorldTransform() (x, y, scaleX, scaleY, rotation float32) {
+	// Start with local transform
+	x, y = actor.X, actor.Y
+	scaleX, scaleY = actor.ScaleX, actor.ScaleY
+	rotation = actor.Rotation
+
+	// Apply parent transforms recursively
+	if parent := actor.GetParent(); parent != nil {
+		parentX, parentY, parentScaleX, parentScaleY, parentRot := parent.GetWorldTransform()
+
+		rad := float64(parentRot * math.Pi / 180)
+		cos := float32(math.Cos(rad))
+		sin := float32(math.Sin(rad))
+
+		// Calculate combined position
+		rotatedX := x*cos - y*sin
+		rotatedY := x*sin + y*cos
+		x = parentX + rotatedX*parentScaleX
+		y = parentY + rotatedY*parentScaleY
+
+		// Combine scale
+		scaleX *= parentScaleX
+		scaleY *= parentScaleY
+
+		// Combine rotation
+		rotation += parentRot
+	}
+
+	return x, y, scaleX, scaleY, rotation
+}
+
 func (actor *Actor) LocalToStageCoordinates(localX, localY float32) (float32, float32) {
 	transform := actor.ComputeTransform()
 	vec := transformCoordinate(localX, localY, transform)
@@ -259,19 +291,12 @@ func (actor *Actor) Draw(batch *Graphics.Batch) {
 	if !actor.Visible {
 		return
 	}
-
-	transform := actor.ComputeTransform()
-	batch.PushTransform(transform)
-
 	if actor.Behavior != nil {
 		actor.Behavior.Draw(actor, batch)
 	}
-
 	for _, child := range actor.Children {
 		child.Draw(batch)
 	}
-
-	batch.PopTransform()
 }
 
 func (actor *Actor) Act(delta float32) {
