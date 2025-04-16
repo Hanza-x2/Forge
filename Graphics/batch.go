@@ -32,6 +32,8 @@ type Batch struct {
 	shader        *Shader
 	driver        *Forge.Driver
 	projection    mgl32.Mat4
+	transform     mgl32.Mat4
+	identity      mgl32.Mat4
 	drawing       bool
 }
 
@@ -181,8 +183,13 @@ func (batch *Batch) Flush() {
 		return
 	}
 
+	matrix := batch.projection
+	if batch.transform != batch.identity {
+		matrix = batch.transform.Mul4(batch.projection)
+	}
+
 	batch.shader.Bind()
-	batch.shader.SetUniformMatrix4fv("u_projection", &batch.projection[0])
+	batch.shader.SetUniformMatrix4fv("u_projection", &matrix[0])
 	batch.shader.SetUniform1i("u_texture", 0)
 
 	if batch.texture != nil {
@@ -204,6 +211,13 @@ func (batch *Batch) SetProjection(projection mgl32.Mat4) {
 	}
 	batch.projection = projection
 	batch.spaceFactor = 2 / (projection[0] * float32(batch.driver.Width))
+}
+
+func (batch *Batch) SetTransform(transform mgl32.Mat4) {
+	if !batch.drawing {
+		batch.Flush()
+	}
+	batch.transform = transform
 }
 
 // Has to be called before doing any drawing *or heavy calculations* (Simple proxies may skip this)
