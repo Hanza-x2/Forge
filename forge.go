@@ -9,34 +9,34 @@ import (
 
 type WindowConfiguration struct {
 	Title                   string
-	Width                   int
-	Height                  int
+	Width                   int32
+	Height                  int32
 	Resizable               bool
 	Decorated               bool
 	OpenGLVersionMajor      int
 	OpenGLVersionMinor      int
 	OpenGLProfile           int
 	OpenGLForwardCompatible bool
-	TargetFPS               int
+	TargetFPS               int32
 }
 
 type Application interface {
 	Create(driver *Driver)
 	Render(driver *Driver, delta float32)
-	Resize(driver *Driver, width, height int)
+	Resize(driver *Driver, width, height int32)
 	Destroy(driver *Driver)
 }
 
 type Driver struct {
 	Input               *InputHandler
-	Width               int
-	Height              int
+	Width               int32
+	Height              int32
 	App                 Application
 	configuration       WindowConfiguration
 	running             bool
 	lastFrame           time.Time
-	fps                 int
-	frames              int
+	fps                 int32
+	frames              int32
 	startTime           time.Time
 	targetFrameDuration time.Duration
 }
@@ -213,15 +213,17 @@ func (driver *Driver) Start() {
 	glfw.WindowHint(glfw.OpenGLProfile, configuration.OpenGLProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfwBool(configuration.OpenGLForwardCompatible))
 
-	window, err := glfw.CreateWindow(configuration.Width, configuration.Height, configuration.Title, nil, nil)
+	window, err := glfw.CreateWindow(int(configuration.Width), int(configuration.Height), configuration.Title, nil, nil)
 	if err != nil {
 		panic(err)
 	}
 
 	window.SetFramebufferSizeCallback(func(w *glfw.Window, width, height int) {
-		driver.Width = width
-		driver.Height = height
-		driver.App.Resize(driver, width, height)
+		castWidth := int32(width)
+		castHeight := int32(height)
+		driver.Width = castWidth
+		driver.Height = castHeight
+		driver.App.Resize(driver, castWidth, castHeight)
 	})
 
 	window.MakeContextCurrent()
@@ -230,11 +232,13 @@ func (driver *Driver) Start() {
 	}
 
 	width, height := window.GetSize()
-	driver.Width = width
-	driver.Height = height
+	castWidth := int32(width)
+	castHeight := int32(height)
+	driver.Width = castWidth
+	driver.Height = castHeight
 
 	driver.App.Create(driver)
-	driver.App.Resize(driver, width, height)
+	driver.App.Resize(driver, castWidth, castHeight)
 
 	driver.running = true
 	driver.Input.Install(window)
@@ -270,11 +274,11 @@ func (driver *Driver) Stop() {
 	driver.running = false
 }
 
-func (driver *Driver) GetFPS() int {
+func (driver *Driver) GetFPS() int32 {
 	return driver.fps
 }
 
-func (driver *Driver) GetFrames() int {
+func (driver *Driver) GetFrames() int32 {
 	return driver.frames
 }
 
