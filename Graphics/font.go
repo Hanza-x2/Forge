@@ -32,6 +32,11 @@ type Font struct {
 	textureDir string
 }
 
+type textLine struct {
+	text  string
+	width float32
+}
+
 func LoadFont(path string) (*Font, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -192,43 +197,124 @@ func (font *Font) DrawEx(batch *Batch, text string, x, y float32, start, end int
 		end = len(text)
 	}
 
-	textWidth := font.MeasureText(text[start:end])
-	var offsetX float32 = 0
-	if targetWidth > 0 && hAlign > 0 {
-		if hAlign == 1 {
-			offsetX = (targetWidth - textWidth) / 2
-		} else if hAlign == 2 {
-			offsetX = targetWidth - textWidth
+	lines := font.breakText(text[start:end], targetWidth, wrap, truncate)
+	if len(lines) == 0 {
+		return
+	}
+
+	lineHeight := float32(font.common.lineHeight)
+	startY := y - float32(font.common.base)
+
+	for i, line := range lines {
+		lineWidth := font.MeasureText(line.text)
+		offsetX := float32(0)
+		if targetWidth > 0 {
+			switch hAlign {
+			case 1: // AlignCenter
+				offsetX = (targetWidth - lineWidth) / 2
+			case 2: // AlignRight
+				offsetX = targetWidth - lineWidth
+			}
+		}
+
+		currentX := x + offsetX
+		currentY := startY + float32(i)*lineHeight
+
+		for j, ch := range line.text {
+			char, exists := font.chars[ch]
+			if !exists {
+				continue
+			}
+
+			kerning := 0
+			if j > 0 {
+				kerning = font.kerning[[2]rune{rune(line.text[j-1]), ch}]
+			}
+
+			if region := font.getGlyph(ch); region != nil {
+				posX := currentX + float32(char.xOffset+kerning)
+				posY := currentY + float32(char.yOffset+char.height)
+				batch.DrawRegion(region, posX, posY, float32(region.Width), float32(region.Height))
+			}
+
+			currentX += float32(char.xAdvance + kerning)
+		}
+	}
+}
+
+func (font *Font) breakText(text string, targetWidth float32, wrap bool, truncate string) []textLine {
+	if targetWidth <= 0 || (!wrap && truncate == "") {
+		return []textLine{{text: text, width: font.MeasureText(text)}}
+	}
+
+	var lines []textLine
+	words := strings.Fields(text)
+
+	if truncate != "" {
+		fullWidth := font.MeasureText(text)
+		if fullWidth <= targetWidth {
+			return []textLine{{text: text, width: fullWidth}}
+		}
+
+		truncWidth := font.MeasureText(truncate)
+		availableWidth := targetWidth - truncWidth
+
+		lastFit := 0
+		currentWidth := float32(0)
+		for i, ch := range text {
+			char, exists := font.chars[ch]
+			if !exists {
+				continue
+			}
+
+			kerning := 0
+			if i > 0 {
+				kerning = font.kerning[[2]rune{rune(text[i-1]), ch}]
+			}
+
+			charWidth := float32(char.xAdvance + kerning)
+			if currentWidth+charWidth > availableWidth {
+				break
+			}
+
+			currentWidth += charWidth
+			lastFit = i + 1
+		}
+
+		if lastFit > 0 {
+			truncated := text[:lastFit] + truncate
+			return []textLine{{text: truncated, width: currentWidth + truncWidth}}
+		}
+		return []textLine{{text: truncate, width: truncWidth}}
+	}
+
+	currentLine := ""
+	currentWidth := float32(0)
+	spaceWidth := float32(font.chars[' '].xAdvance)
+
+	for _, word := range words {
+		wordWidth := font.MeasureText(word)
+		if currentWidth+wordWidth <= targetWidth {
+			if currentLine != "" {
+				currentLine += " "
+				currentWidth += spaceWidth
+			}
+			currentLine += word
+			currentWidth += wordWidth
+		} else {
+			if currentLine != "" {
+				lines = append(lines, textLine{text: currentLine, width: currentWidth})
+			}
+			currentLine = word
+			currentWidth = wordWidth
 		}
 	}
 
-	currentX, currentY := x+offsetX, y
-	for i := start; i < end; i++ {
-		ch := rune(text[i])
-		if ch == '\n' {
-			currentX = x + offsetX
-			currentY += float32(font.common.lineHeight)
-			continue
-		}
-
-		char, exists := font.chars[ch]
-		if !exists {
-			continue
-		}
-
-		kerning := 0
-		if i > start {
-			kerning = font.kerning[[2]rune{rune(text[i-1]), ch}]
-		}
-
-		if region := font.getGlyph(ch); region != nil {
-			posX := currentX + float32(char.xOffset+kerning)
-			posY := currentY + float32(font.common.base-char.yOffset-char.height)
-			batch.DrawRegion(region, posX, posY, float32(region.Width), float32(region.Height))
-		}
-
-		currentX += float32(char.xAdvance + kerning)
+	if currentLine != "" {
+		lines = append(lines, textLine{text: currentLine, width: currentWidth})
 	}
+
+	return lines
 }
 
 func (font *Font) MeasureText(text string) float32 {
