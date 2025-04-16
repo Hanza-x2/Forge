@@ -24,41 +24,41 @@ func NewCamera(width, height float32) *Camera {
 	return cam
 }
 
-func (c *Camera) Update() {
-	width := c.Width * c.Zoom
-	height := c.Height * c.Zoom
+func (camera *Camera) Update() {
+	width := camera.Width * camera.Zoom
+	height := camera.Height * camera.Zoom
 
-	c.Matrix = mgl32.Ortho2D(
-		c.Position.X()-width/2,
-		c.Position.X()+width/2,
-		c.Position.Y()-height/2,
-		c.Position.Y()+height/2,
+	camera.Matrix = mgl32.Ortho2D(
+		camera.Position.X()-width/2,
+		camera.Position.X()+width/2,
+		camera.Position.Y()-height/2,
+		camera.Position.Y()+height/2,
 	)
-	c.Inverse = c.Matrix.Inv()
+	camera.Inverse = camera.Matrix.Inv()
 }
 
-func (c *Camera) Resize(width, height float32) {
-	c.Width = width
-	c.Height = height
-	c.Update()
+func (camera *Camera) Resize(width, height float32) {
+	camera.Width = width
+	camera.Height = height
+	camera.Update()
 }
 
-func (c *Camera) Translate(x, y float32) {
-	c.Position = c.Position.Add(mgl32.Vec2{x, y})
-	c.Update()
+func (camera *Camera) Translate(x, y float32) {
+	camera.Position = camera.Position.Add(mgl32.Vec2{x, y})
+	camera.Update()
 }
 
-func (c *Camera) Unproject(screenPos mgl32.Vec2, viewportWidth, viewportHeight float32) mgl32.Vec2 {
+func (camera *Camera) Unproject(screenPos mgl32.Vec2, viewportWidth, viewportHeight float32) mgl32.Vec2 {
 	normalizedX := 2*screenPos.X()/viewportWidth - 1
 	normalizedY := 1 - 2*screenPos.Y()/viewportHeight
 
-	worldPos := c.Inverse.Mul4x1(mgl32.Vec4{normalizedX, normalizedY, 0, 1})
-	return mgl32.Vec2{worldPos.X(), worldPos.Y()}.Add(c.Position)
+	worldPos := camera.Inverse.Mul4x1(mgl32.Vec4{normalizedX, normalizedY, 0, 1})
+	return mgl32.Vec2{worldPos.X(), worldPos.Y()}.Add(camera.Position)
 }
 
-func (c *Camera) Project(worldPos mgl32.Vec2, viewportWidth, viewportHeight float32) mgl32.Vec2 {
-	relativePos := worldPos.Sub(c.Position)
-	clipPos := c.Matrix.Mul4x1(mgl32.Vec4{relativePos.X(), relativePos.Y(), 0, 1})
+func (camera *Camera) Project(worldPos mgl32.Vec2, viewportWidth, viewportHeight float32) mgl32.Vec2 {
+	relativePos := worldPos.Sub(camera.Position)
+	clipPos := camera.Matrix.Mul4x1(mgl32.Vec4{relativePos.X(), relativePos.Y(), 0, 1})
 
 	return mgl32.Vec2{
 		(clipPos.X() + 1) * viewportWidth / 2,
