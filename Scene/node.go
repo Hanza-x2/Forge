@@ -22,11 +22,10 @@ type Node struct {
 	ScaleX    float32
 	ScaleY    float32
 	Rotation  float32
-	ZIndex    int
 	Visible   bool
-	Parent    *Node
-	Children  []*Node
 	UserData  interface{}
+	children  []*Node
+	parent    *Node
 	scene     *Scene
 	transform mgl32.Mat3
 	dirty     bool
@@ -37,33 +36,9 @@ func NewNode() *Node {
 		ScaleX:   1,
 		ScaleY:   1,
 		Visible:  true,
-		Children: make([]*Node, 0),
+		children: make([]*Node, 0),
 		dirty:    true,
 	}
-}
-
-func (node *Node) GetName() string {
-	return node.Name
-}
-
-func (node *Node) GetBehavior() Behavior {
-	return node.Behavior
-}
-
-func (node *Node) SetBehavior(behavior Behavior) {
-	node.Behavior = behavior
-}
-
-func (node *Node) SetName(name string) {
-	node.Name = name
-}
-
-func (node *Node) GetX() float32 {
-	return node.X
-}
-
-func (node *Node) GetY() float32 {
-	return node.Y
 }
 
 func (node *Node) SetPosition(x, y float32) {
@@ -71,25 +46,9 @@ func (node *Node) SetPosition(x, y float32) {
 	node.dirty = true
 }
 
-func (node *Node) GetWidth() float32 {
-	return node.Width
-}
-
-func (node *Node) GetHeight() float32 {
-	return node.Height
-}
-
 func (node *Node) SetSize(width, height float32) {
 	node.Width, node.Height = width, height
 	node.dirty = true
-}
-
-func (node *Node) GetOriginX() float32 {
-	return node.OriginX
-}
-
-func (node *Node) GetOriginY() float32 {
-	return node.OriginY
 }
 
 func (node *Node) SetOrigin(originX, originY float32) {
@@ -97,21 +56,9 @@ func (node *Node) SetOrigin(originX, originY float32) {
 	node.dirty = true
 }
 
-func (node *Node) GetScaleX() float32 {
-	return node.ScaleX
-}
-
-func (node *Node) GetScaleY() float32 {
-	return node.ScaleY
-}
-
 func (node *Node) SetScale(scaleX, scaleY float32) {
 	node.ScaleX, node.ScaleY = scaleX, scaleY
 	node.dirty = true
-}
-
-func (node *Node) GetRotation() float32 {
-	return node.Rotation
 }
 
 func (node *Node) SetRotation(degrees float32) {
@@ -119,43 +66,18 @@ func (node *Node) SetRotation(degrees float32) {
 	node.dirty = true
 }
 
-func (node *Node) GetZIndex() int {
-	return node.ZIndex
-}
-
-func (node *Node) SetZIndex(zIndex int) {
-	node.ZIndex = zIndex
-	node.dirty = true
-}
-
-func (node *Node) IsVisible() bool {
-	return node.Visible
-}
-
-func (node *Node) SetVisible(visible bool) {
-	node.Visible = visible
-}
-
-func (node *Node) GetUserData() interface{} {
-	return node.UserData
-}
-
-func (node *Node) SetUserData(data interface{}) {
-	node.UserData = data
-}
-
 func (node *Node) GetParent() *Node {
-	return node.Parent
+	return node.parent
 }
 
 func (node *Node) SetParent(parent *Node) {
-	if node.Parent == parent {
+	if node.parent == parent {
 		return
 	}
-	if node.Parent != nil {
-		node.Parent.RemoveChild(node)
+	if node.parent != nil {
+		node.parent.RemoveChild(node)
 	}
-	node.Parent = parent
+	node.parent = parent
 	if parent != nil {
 		node.scene = parent.GetScene()
 	} else {
@@ -169,7 +91,7 @@ func (node *Node) GetScene() *Scene {
 
 func (node *Node) SetScene(scene *Scene) {
 	node.scene = scene
-	for _, child := range node.Children {
+	for _, child := range node.children {
 		child.SetScene(scene)
 	}
 }
@@ -178,15 +100,15 @@ func (node *Node) AddChild(child *Node) {
 	if currentParent := child.GetParent(); currentParent != nil {
 		currentParent.RemoveChild(child)
 	}
-	node.Children = append(node.Children, child)
+	node.children = append(node.children, child)
 	child.SetParent(node)
 	child.SetScene(node.scene)
 }
 
 func (node *Node) RemoveChild(child *Node) bool {
-	for i, c := range node.Children {
+	for i, c := range node.children {
 		if c == child {
-			node.Children = append(node.Children[:i], node.Children[i+1:]...)
+			node.children = append(node.children[:i], node.children[i+1:]...)
 			child.SetParent(nil)
 			child.SetScene(nil)
 			return true
@@ -196,15 +118,15 @@ func (node *Node) RemoveChild(child *Node) bool {
 }
 
 func (node *Node) GetChildren() []*Node {
-	return node.Children
+	return node.children
 }
 
 func (node *Node) RemoveAllChildren() {
-	for _, child := range node.Children {
+	for _, child := range node.children {
 		child.SetParent(nil)
 		child.SetScene(nil)
 	}
-	node.Children = make([]*Node, 0)
+	node.children = make([]*Node, 0)
 }
 
 func transformCoordinate(vecX, vecY float32, mat mgl32.Mat3) mgl32.Vec2 {
@@ -262,13 +184,13 @@ func (node *Node) SceneToLocalCoordinates(sceneX, sceneY float32) (float32, floa
 }
 
 func (node *Node) ComputeTransform() mgl32.Mat3 {
-	if !node.dirty && node.Parent == nil {
+	if !node.dirty && node.parent == nil {
 		return node.transform
 	}
 
 	transform := mgl32.Ident3()
-	if node.Parent != nil {
-		transform = node.Parent.ComputeTransform()
+	if node.parent != nil {
+		transform = node.parent.ComputeTransform()
 	}
 
 	transform = transform.Mul3(mgl32.Translate2D(node.X, node.Y))
@@ -284,7 +206,7 @@ func (node *Node) ComputeTransform() mgl32.Mat3 {
 		transform = transform.Mul3(mgl32.Translate2D(-node.OriginX, -node.OriginY))
 	}
 
-	if node.Parent == nil {
+	if node.parent == nil {
 		node.transform = transform
 		node.dirty = false
 	}
@@ -299,7 +221,7 @@ func (node *Node) Draw(batch *Graphics.Batch) {
 	if node.Behavior != nil {
 		node.Behavior.Draw(node, batch)
 	}
-	for _, child := range node.Children {
+	for _, child := range node.children {
 		child.Draw(batch)
 	}
 }
@@ -308,7 +230,7 @@ func (node *Node) Act(delta float32) {
 	if node.Behavior != nil {
 		node.Behavior.Act(node, delta)
 	}
-	for _, child := range node.Children {
+	for _, child := range node.children {
 		child.Act(delta)
 	}
 }
