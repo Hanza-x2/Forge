@@ -1,7 +1,7 @@
-package viewports
+package Viewports
 
 import (
-	"forgejo.max7.fun/m.alkhatib/GoForge/graphics"
+	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 )
@@ -15,7 +15,7 @@ func NewFitViewport(worldWidth, worldHeight float32, screenWidth, screenHeight i
 		BaseViewport: BaseViewport{
 			WorldWidth:  worldWidth,
 			WorldHeight: worldHeight,
-			Camera:      graphics.NewCamera(worldWidth, worldHeight),
+			Camera:      Graphics.NewCamera(worldWidth, worldHeight),
 		},
 	}
 	viewport.Update(screenWidth, screenHeight, true)

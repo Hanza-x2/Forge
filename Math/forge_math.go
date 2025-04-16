@@ -1,4 +1,4 @@
-package math
+package Math
 
 func Lerp(a, b, t float32) float32 {
 	return a + (b-a)*t

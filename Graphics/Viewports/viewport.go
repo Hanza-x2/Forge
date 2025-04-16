@@ -1,7 +1,7 @@
-package viewports
+package Viewports
 
 import (
-	"forgejo.max7.fun/m.alkhatib/GoForge/graphics"
+	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics"
 )
 
 type Viewport interface {
@@ -9,7 +9,7 @@ type Viewport interface {
 
 	Update(screenWidth, screenHeight int, centerCamera bool)
 
-	GetCamera() *graphics.Camera
+	GetCamera() *Graphics.Camera
 
 	GetWorldDimensions() (float32, float32)
 
@@ -17,7 +17,7 @@ type Viewport interface {
 }
 
 type BaseViewport struct {
-	Camera      *graphics.Camera
+	Camera      *Graphics.Camera
 	WorldWidth  float32
 	WorldHeight float32
 
@@ -27,7 +27,7 @@ type BaseViewport struct {
 	screenHeight int32
 }
 
-func (viewport *BaseViewport) GetCamera() *graphics.Camera {
+func (viewport *BaseViewport) GetCamera() *Graphics.Camera {
 	return viewport.Camera
 }
 

@@ -1,7 +1,7 @@
-package graphics
+package Graphics
 
 import (
-	forge "forgejo.max7.fun/m.alkhatib/GoForge"
+	Forge "forgejo.max7.fun/m.alkhatib/GoForge"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"log"
@@ -30,7 +30,7 @@ type Batch struct {
 	pixel         *TextureRegion
 	texture       *Texture
 	shader        *Shader
-	driver        *forge.Driver
+	driver        *Forge.Driver
 	projection    mgl32.Mat4
 	drawing       bool
 }
@@ -91,7 +91,7 @@ func createDefaultPixel() *TextureRegion {
 	return NewTextureRegion(pixel)
 }
 
-func NewBatch(driver *forge.Driver) *Batch {
+func NewBatch(driver *Forge.Driver) *Batch {
 	pixel := createDefaultPixel()
 	shader := createDefaultShader()
 	batch := &Batch{

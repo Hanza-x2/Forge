@@ -1,4 +1,4 @@
-package graphics
+package Graphics
 
 import (
 	"github.com/go-gl/mathgl/mgl32"

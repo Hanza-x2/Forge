@@ -1,4 +1,4 @@
-package graphics
+package Graphics
 
 type Animation struct {
 	Frames        []*TextureRegion
