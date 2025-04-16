@@ -4,56 +4,38 @@ import (
 	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics"
 	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics/Viewports"
 	"github.com/go-gl/mathgl/mgl32"
-	"sort"
 )
 
 type Stage struct {
-	Root      BaseActor
-	Actors    []Actor
+	Root      Actor
 	Batch     *Graphics.Batch
 	Viewport  Viewports.Viewport
 	sortDirty bool
 }
 
 func NewStage(viewport Viewports.Viewport, batch *Graphics.Batch) *Stage {
+	root := NewBaseActor()
 	stage := &Stage{
-		Root: BaseActor{
-			ScaleX:   1,
-			ScaleY:   1,
-			Visible:  true,
-			Children: make([]Actor, 0),
-			dirty:    true,
-		},
+		Root:     root,
 		Batch:    batch,
 		Viewport: viewport,
-		Actors:   make([]Actor, 0),
 	}
-	stage.Root.stage = stage
+	root.SetStage(stage)
 	return stage
 }
 
 func (stage *Stage) AddActor(actor Actor) {
 	stage.Root.AddChild(actor)
-	stage.Actors = append(stage.Actors, actor)
 	stage.sortDirty = true
 }
 
-func (stage *Stage) RemoveActor(actor Actor) bool {
-	if stage.Root.RemoveChild(actor) {
-		for i, a := range stage.Actors {
-			if a == actor {
-				stage.Actors = append(stage.Actors[:i], stage.Actors[i+1:]...)
-				break
-			}
-		}
-		return true
-	}
-	return false
+func (stage *Stage) RemoveActor(actor Actor) {
+	stage.Root.RemoveChild(actor)
+	//stage.sortDirty = true
 }
 
 func (stage *Stage) Clear() {
 	stage.Root.RemoveAllChildren()
-	stage.Actors = make([]Actor, 0)
 }
 
 func (stage *Stage) Act(delta float32) {
@@ -63,15 +45,7 @@ func (stage *Stage) Act(delta float32) {
 func (stage *Stage) Draw() {
 	stage.Viewport.Apply(false)
 	stage.Batch.SetProjection(stage.Viewport.GetCamera().Matrix)
-
 	stage.Batch.Begin()
-	if stage.sortDirty {
-		sort.SliceStable(stage.Actors, func(i, j int) bool {
-			return stage.Actors[i].GetZIndex() < stage.Actors[j].GetZIndex()
-		})
-		stage.sortDirty = false
-	}
-
 	stage.Root.Draw(stage.Batch)
 	stage.Batch.End()
 }
@@ -91,8 +65,9 @@ func (stage *Stage) ScreenToStageCoordinates(screenX, screenY float32) (float32,
 }
 
 func (stage *Stage) Hit(x, y float32) Actor {
-	for i := len(stage.Actors) - 1; i >= 0; i-- {
-		actor := stage.Actors[i]
+	actors := stage.Root.GetChildren()
+	for i := len(actors) - 1; i >= 0; i-- {
+		actor := actors[i]
 		if actor.Hit(x, y) {
 			return actor
 		}
