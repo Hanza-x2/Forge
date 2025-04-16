@@ -58,8 +58,8 @@ func LoadFont(path string) (*Font, error) {
 	return font, nil
 }
 
-func (font *Font) parse(r io.Reader) error {
-	scanner := bufio.NewScanner(r)
+func (font *Font) parse(reader io.Reader) error {
+	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if len(line) == 0 {
@@ -96,29 +96,29 @@ func (font *Font) parse(r io.Reader) error {
 	return scanner.Err()
 }
 
-func (font *Font) parseInfo(attrs map[string]string) {
-	font.info.face = attrs["face"]
-	font.info.size = atoi(attrs["size"])
-	padding := strings.Split(attrs["padding"], ",")
+func (font *Font) parseInfo(attributes map[string]string) {
+	font.info.face = attributes["face"]
+	font.info.size = atoi(attributes["size"])
+	padding := strings.Split(attributes["padding"], ",")
 	font.info.padding.up = atoi(padding[0])
 	font.info.padding.right = atoi(padding[1])
 	font.info.padding.down = atoi(padding[2])
 	font.info.padding.left = atoi(padding[3])
 }
 
-func (font *Font) parseCommon(attrs map[string]string) {
-	font.common.lineHeight = atoi(attrs["lineHeight"])
-	font.common.base = atoi(attrs["base"])
-	font.common.scaleW = atoi(attrs["scaleW"])
-	font.common.scaleH = atoi(attrs["scaleH"])
+func (font *Font) parseCommon(attributes map[string]string) {
+	font.common.lineHeight = atoi(attributes["lineHeight"])
+	font.common.base = atoi(attributes["base"])
+	font.common.scaleW = atoi(attributes["scaleW"])
+	font.common.scaleH = atoi(attributes["scaleH"])
 }
 
-func (font *Font) parsePage(attrs map[string]string) error {
-	id := atoi(attrs["id"])
+func (font *Font) parsePage(attributes map[string]string) error {
+	id := atoi(attributes["id"])
 	if id >= len(font.pages) {
 		font.pages = append(font.pages, make([]*TextureRegion, id+1-len(font.pages))...)
 	}
-	texture, err := NewTexture(filepath.Join(font.textureDir, attrs["file"]))
+	texture, err := NewTexture(filepath.Join(font.textureDir, attributes["file"]))
 	if err != nil {
 		return err
 	}
@@ -126,29 +126,29 @@ func (font *Font) parsePage(attrs map[string]string) error {
 	return nil
 }
 
-func (font *Font) parseChar(attrs map[string]string) {
-	id := atoi(attrs["id"])
+func (font *Font) parseChar(attributes map[string]string) {
+	id := atoi(attributes["id"])
 	font.chars[rune(id)] = struct {
 		x, y, width, height int
 		xOffset, yOffset    int
 		xAdvance            int
 		page                int
 	}{
-		x:        atoi(attrs["x"]),
-		y:        atoi(attrs["y"]),
-		width:    atoi(attrs["width"]),
-		height:   atoi(attrs["height"]),
-		xOffset:  atoi(attrs["xoffset"]),
-		yOffset:  atoi(attrs["yoffset"]),
-		xAdvance: atoi(attrs["xadvance"]),
-		page:     atoi(attrs["page"]),
+		x:        atoi(attributes["x"]),
+		y:        atoi(attributes["y"]),
+		width:    atoi(attributes["width"]),
+		height:   atoi(attributes["height"]),
+		xOffset:  atoi(attributes["xoffset"]),
+		yOffset:  atoi(attributes["yoffset"]),
+		xAdvance: atoi(attributes["xadvance"]),
+		page:     atoi(attributes["page"]),
 	}
 }
 
-func (font *Font) parseKerning(attrs map[string]string) {
-	first := rune(atoi(attrs["first"]))
-	second := rune(atoi(attrs["second"]))
-	font.kerning[[2]rune{first, second}] = atoi(attrs["amount"])
+func (font *Font) parseKerning(attributes map[string]string) {
+	first := rune(atoi(attributes["first"]))
+	second := rune(atoi(attributes["second"]))
+	font.kerning[[2]rune{first, second}] = atoi(attributes["amount"])
 }
 
 func (font *Font) getGlyph(ch rune) *TextureRegion {
@@ -193,12 +193,11 @@ func (font *Font) DrawEx(batch *Batch, text string, x, y float32, start, end int
 	}
 
 	textWidth := font.MeasureText(text[start:end])
-	offsetX := float32(0)
-	if targetWidth > 0 {
-		switch hAlign {
-		case 1: // AlignCenter
+	var offsetX float32 = 0
+	if targetWidth > 0 && hAlign > 0 {
+		if hAlign == 1 {
 			offsetX = (targetWidth - textWidth) / 2
-		case 2: // AlignRight
+		} else if hAlign == 2 {
 			offsetX = targetWidth - textWidth
 		}
 	}
