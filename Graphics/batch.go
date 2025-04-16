@@ -2,6 +2,7 @@ package Graphics
 
 import (
 	Forge "forgejo.max7.fun/m.alkhatib/GoForge"
+	"forgejo.max7.fun/m.alkhatib/GoForge/Math"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"log"
@@ -32,8 +33,8 @@ type Batch struct {
 	shader        *Shader
 	driver        *Forge.Driver
 	projection    mgl32.Mat4
-	transform     mgl32.Mat4
-	identity      mgl32.Mat4
+	transform     mgl32.Mat3
+	identity      mgl32.Mat3
 	drawing       bool
 }
 
@@ -185,7 +186,7 @@ func (batch *Batch) Flush() {
 
 	matrix := batch.projection
 	if batch.transform != batch.identity {
-		matrix = batch.transform.Mul4(batch.projection)
+		matrix = batch.projection.Mul4(Math.Mat3ToMat4(batch.transform))
 	}
 
 	batch.shader.Bind()
@@ -213,7 +214,7 @@ func (batch *Batch) SetProjection(projection mgl32.Mat4) {
 	batch.spaceFactor = 2 / (projection[0] * float32(batch.driver.Width))
 }
 
-func (batch *Batch) PushTransform(transform mgl32.Mat4) {
+func (batch *Batch) PushTransform(transform mgl32.Mat3) {
 	if !batch.drawing {
 		batch.Flush()
 	}
