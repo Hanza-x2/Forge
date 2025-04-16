@@ -213,11 +213,15 @@ func (batch *Batch) SetProjection(projection mgl32.Mat4) {
 	batch.spaceFactor = 2 / (projection[0] * float32(batch.driver.Width))
 }
 
-func (batch *Batch) SetTransform(transform mgl32.Mat4) {
+func (batch *Batch) PushTransform(transform mgl32.Mat4) {
 	if !batch.drawing {
 		batch.Flush()
 	}
 	batch.transform = transform
+}
+
+func (batch *Batch) PopTransform() {
+	batch.PushTransform(batch.identity)
 }
 
 // Has to be called before doing any drawing *or heavy calculations* (Simple proxies may skip this)
