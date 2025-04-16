@@ -7,14 +7,14 @@ import (
 )
 
 type Stage struct {
-	Root      Actor
+	Root      *Actor
 	Batch     *Graphics.Batch
 	Viewport  Viewports.Viewport
 	sortDirty bool
 }
 
 func NewStage(viewport Viewports.Viewport, batch *Graphics.Batch) *Stage {
-	root := NewBaseActor()
+	root := NewActor()
 	stage := &Stage{
 		Root:     root,
 		Batch:    batch,
@@ -24,14 +24,13 @@ func NewStage(viewport Viewports.Viewport, batch *Graphics.Batch) *Stage {
 	return stage
 }
 
-func (stage *Stage) AddActor(actor Actor) {
+func (stage *Stage) AddActor(actor *Actor) {
 	stage.Root.AddChild(actor)
 	stage.sortDirty = true
 }
 
-func (stage *Stage) RemoveActor(actor Actor) {
+func (stage *Stage) RemoveActor(actor *Actor) {
 	stage.Root.RemoveChild(actor)
-	//stage.sortDirty = true
 }
 
 func (stage *Stage) Clear() {
@@ -64,7 +63,7 @@ func (stage *Stage) ScreenToStageCoordinates(screenX, screenY float32) (float32,
 	return output.X(), output.Y()
 }
 
-func (stage *Stage) Hit(x, y float32) Actor {
+func (stage *Stage) Hit(x, y float32) *Actor {
 	actors := stage.Root.GetChildren()
 	for i := len(actors) - 1; i >= 0; i-- {
 		actor := actors[i]

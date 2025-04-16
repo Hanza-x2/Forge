@@ -6,66 +6,11 @@ import (
 )
 
 type Behavior interface {
-	Draw(actor Actor, batch *Graphics.Batch)
-	Act(actor Actor, delta float32)
+	Draw(actor *Actor, batch *Graphics.Batch)
+	Act(actor *Actor, delta float32)
 }
 
-type Actor interface {
-	GetName() string
-	SetName(name string)
-
-	GetBehavior() Behavior
-	SetBehavior(behavior Behavior)
-
-	GetX() float32
-	GetY() float32
-	SetPosition(x, y float32)
-
-	GetWidth() float32
-	GetHeight() float32
-	SetSize(width, height float32)
-
-	GetOriginX() float32
-	GetOriginY() float32
-	SetOrigin(originX, originY float32)
-
-	GetScaleX() float32
-	GetScaleY() float32
-	SetScale(scaleX, scaleY float32)
-
-	GetRotation() float32
-	SetRotation(degrees float32)
-
-	GetZIndex() int
-	SetZIndex(zIndex int)
-
-	IsVisible() bool
-	SetVisible(visible bool)
-
-	GetUserData() interface{}
-	SetUserData(data interface{})
-
-	GetParent() Actor
-	SetParent(parent Actor)
-
-	GetStage() *Stage
-	SetStage(stage *Stage)
-
-	AddChild(child Actor)
-	RemoveChild(child Actor) bool
-	GetChildren() []Actor
-	RemoveAllChildren()
-
-	LocalToStageCoordinates(localX, localY float32) (float32, float32)
-	StageToLocalCoordinates(stageX, stageY float32) (float32, float32)
-	ComputeTransform() mgl32.Mat3
-
-	Draw(batch *Graphics.Batch)
-	Act(delta float32)
-	Hit(x, y float32) bool
-}
-
-type BaseActor struct {
+type Actor struct {
 	Name      string
 	Behavior  Behavior
 	X, Y      float32
@@ -78,131 +23,131 @@ type BaseActor struct {
 	Rotation  float32
 	ZIndex    int
 	Visible   bool
-	Parent    Actor
-	Children  []Actor
+	Parent    *Actor
+	Children  []*Actor
 	UserData  interface{}
 	stage     *Stage
 	transform mgl32.Mat3
 	dirty     bool
 }
 
-func NewBaseActor() *BaseActor {
-	return &BaseActor{
+func NewActor() *Actor {
+	return &Actor{
 		ScaleX:   1,
 		ScaleY:   1,
 		Visible:  true,
-		Children: make([]Actor, 0),
+		Children: make([]*Actor, 0),
 		dirty:    true,
 	}
 }
 
-func (actor *BaseActor) GetName() string {
+func (actor *Actor) GetName() string {
 	return actor.Name
 }
 
-func (actor *BaseActor) GetBehavior() Behavior {
+func (actor *Actor) GetBehavior() Behavior {
 	return actor.Behavior
 }
 
-func (actor *BaseActor) SetBehavior(behavior Behavior) {
+func (actor *Actor) SetBehavior(behavior Behavior) {
 	actor.Behavior = behavior
 }
 
-func (actor *BaseActor) SetName(name string) {
+func (actor *Actor) SetName(name string) {
 	actor.Name = name
 }
 
-func (actor *BaseActor) GetX() float32 {
+func (actor *Actor) GetX() float32 {
 	return actor.X
 }
 
-func (actor *BaseActor) GetY() float32 {
+func (actor *Actor) GetY() float32 {
 	return actor.Y
 }
 
-func (actor *BaseActor) SetPosition(x, y float32) {
+func (actor *Actor) SetPosition(x, y float32) {
 	actor.X, actor.Y = x, y
 	actor.dirty = true
 }
 
-func (actor *BaseActor) GetWidth() float32 {
+func (actor *Actor) GetWidth() float32 {
 	return actor.Width
 }
 
-func (actor *BaseActor) GetHeight() float32 {
+func (actor *Actor) GetHeight() float32 {
 	return actor.Height
 }
 
-func (actor *BaseActor) SetSize(width, height float32) {
+func (actor *Actor) SetSize(width, height float32) {
 	actor.Width, actor.Height = width, height
 	actor.dirty = true
 }
 
-func (actor *BaseActor) GetOriginX() float32 {
+func (actor *Actor) GetOriginX() float32 {
 	return actor.OriginX
 }
 
-func (actor *BaseActor) GetOriginY() float32 {
+func (actor *Actor) GetOriginY() float32 {
 	return actor.OriginY
 }
 
-func (actor *BaseActor) SetOrigin(originX, originY float32) {
+func (actor *Actor) SetOrigin(originX, originY float32) {
 	actor.OriginX, actor.OriginY = originX, originY
 	actor.dirty = true
 }
 
-func (actor *BaseActor) GetScaleX() float32 {
+func (actor *Actor) GetScaleX() float32 {
 	return actor.ScaleX
 }
 
-func (actor *BaseActor) GetScaleY() float32 {
+func (actor *Actor) GetScaleY() float32 {
 	return actor.ScaleY
 }
 
-func (actor *BaseActor) SetScale(scaleX, scaleY float32) {
+func (actor *Actor) SetScale(scaleX, scaleY float32) {
 	actor.ScaleX, actor.ScaleY = scaleX, scaleY
 	actor.dirty = true
 }
 
-func (actor *BaseActor) GetRotation() float32 {
+func (actor *Actor) GetRotation() float32 {
 	return actor.Rotation
 }
 
-func (actor *BaseActor) SetRotation(degrees float32) {
+func (actor *Actor) SetRotation(degrees float32) {
 	actor.Rotation = degrees
 	actor.dirty = true
 }
 
-func (actor *BaseActor) GetZIndex() int {
+func (actor *Actor) GetZIndex() int {
 	return actor.ZIndex
 }
 
-func (actor *BaseActor) SetZIndex(zIndex int) {
+func (actor *Actor) SetZIndex(zIndex int) {
 	actor.ZIndex = zIndex
 	actor.dirty = true
 }
 
-func (actor *BaseActor) IsVisible() bool {
+func (actor *Actor) IsVisible() bool {
 	return actor.Visible
 }
 
-func (actor *BaseActor) SetVisible(visible bool) {
+func (actor *Actor) SetVisible(visible bool) {
 	actor.Visible = visible
 }
 
-func (actor *BaseActor) GetUserData() interface{} {
+func (actor *Actor) GetUserData() interface{} {
 	return actor.UserData
 }
 
-func (actor *BaseActor) SetUserData(data interface{}) {
+func (actor *Actor) SetUserData(data interface{}) {
 	actor.UserData = data
 }
 
-func (actor *BaseActor) GetParent() Actor {
+func (actor *Actor) GetParent() *Actor {
 	return actor.Parent
 }
 
-func (actor *BaseActor) SetParent(parent Actor) {
+func (actor *Actor) SetParent(parent *Actor) {
 	if actor.Parent == parent {
 		return
 	}
@@ -217,18 +162,18 @@ func (actor *BaseActor) SetParent(parent Actor) {
 	}
 }
 
-func (actor *BaseActor) GetStage() *Stage {
+func (actor *Actor) GetStage() *Stage {
 	return actor.stage
 }
 
-func (actor *BaseActor) SetStage(stage *Stage) {
+func (actor *Actor) SetStage(stage *Stage) {
 	actor.stage = stage
 	for _, child := range actor.Children {
 		child.SetStage(stage)
 	}
 }
 
-func (actor *BaseActor) AddChild(child Actor) {
+func (actor *Actor) AddChild(child *Actor) {
 	if currentParent := child.GetParent(); currentParent != nil {
 		currentParent.RemoveChild(child)
 	}
@@ -237,7 +182,7 @@ func (actor *BaseActor) AddChild(child Actor) {
 	child.SetStage(actor.stage)
 }
 
-func (actor *BaseActor) RemoveChild(child Actor) bool {
+func (actor *Actor) RemoveChild(child *Actor) bool {
 	for i, c := range actor.Children {
 		if c == child {
 			actor.Children = append(actor.Children[:i], actor.Children[i+1:]...)
@@ -249,16 +194,16 @@ func (actor *BaseActor) RemoveChild(child Actor) bool {
 	return false
 }
 
-func (actor *BaseActor) GetChildren() []Actor {
+func (actor *Actor) GetChildren() []*Actor {
 	return actor.Children
 }
 
-func (actor *BaseActor) RemoveAllChildren() {
+func (actor *Actor) RemoveAllChildren() {
 	for _, child := range actor.Children {
 		child.SetParent(nil)
 		child.SetStage(nil)
 	}
-	actor.Children = make([]Actor, 0)
+	actor.Children = make([]*Actor, 0)
 }
 
 func transformCoordinate(vecX, vecY float32, mat mgl32.Mat3) mgl32.Vec2 {
@@ -267,19 +212,19 @@ func transformCoordinate(vecX, vecY float32, mat mgl32.Mat3) mgl32.Vec2 {
 	return mgl32.Vec2{x, y}
 }
 
-func (actor *BaseActor) LocalToStageCoordinates(localX, localY float32) (float32, float32) {
+func (actor *Actor) LocalToStageCoordinates(localX, localY float32) (float32, float32) {
 	transform := actor.ComputeTransform()
 	vec := transformCoordinate(localX, localY, transform)
 	return vec.X(), vec.Y()
 }
 
-func (actor *BaseActor) StageToLocalCoordinates(stageX, stageY float32) (float32, float32) {
+func (actor *Actor) StageToLocalCoordinates(stageX, stageY float32) (float32, float32) {
 	transform := actor.ComputeTransform().Inv()
 	vec := transformCoordinate(stageX, stageY, transform)
 	return vec.X(), vec.Y()
 }
 
-func (actor *BaseActor) ComputeTransform() mgl32.Mat3 {
+func (actor *Actor) ComputeTransform() mgl32.Mat3 {
 	if !actor.dirty && actor.Parent == nil {
 		return actor.transform
 	}
@@ -310,7 +255,7 @@ func (actor *BaseActor) ComputeTransform() mgl32.Mat3 {
 	return transform
 }
 
-func (actor *BaseActor) Draw(batch *Graphics.Batch) {
+func (actor *Actor) Draw(batch *Graphics.Batch) {
 	if !actor.Visible {
 		return
 	}
@@ -329,7 +274,7 @@ func (actor *BaseActor) Draw(batch *Graphics.Batch) {
 	batch.PopTransform()
 }
 
-func (actor *BaseActor) Act(delta float32) {
+func (actor *Actor) Act(delta float32) {
 	if actor.Behavior != nil {
 		actor.Behavior.Act(actor, delta)
 	}
@@ -338,7 +283,7 @@ func (actor *BaseActor) Act(delta float32) {
 	}
 }
 
-func (actor *BaseActor) Hit(x, y float32) bool {
+func (actor *Actor) Hit(x, y float32) bool {
 	if !actor.Visible {
 		return false
 	}
