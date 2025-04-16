@@ -244,6 +244,11 @@ func (actor *Actor) GetWorldTransform() (x, y, scaleX, scaleY, rotation float32)
 	return x, y, scaleX, scaleY, rotation
 }
 
+func (actor *Actor) GetWorldTransformEx() (x, y, originX, originY, width, height, scaleX, scaleY, rotation float32) {
+	x, y, scaleX, scaleY, rotation = actor.GetWorldTransform()
+	return x, y, actor.OriginX, actor.OriginY, actor.Width, actor.Height, scaleX, scaleY, rotation
+}
+
 func (actor *Actor) LocalToStageCoordinates(localX, localY float32) (float32, float32) {
 	transform := actor.ComputeTransform()
 	vec := transformCoordinate(localX, localY, transform)
