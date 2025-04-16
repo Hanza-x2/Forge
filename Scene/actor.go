@@ -81,6 +81,16 @@ type BaseActor struct {
 	dirty     bool
 }
 
+func NewBaseActor() *BaseActor {
+	return &BaseActor{
+		ScaleX:   1,
+		ScaleY:   1,
+		Visible:  true,
+		Children: make([]Actor, 0),
+		dirty:    true,
+	}
+}
+
 func (actor *BaseActor) GetName() string {
 	return actor.Name
 }
