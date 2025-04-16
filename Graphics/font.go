@@ -26,9 +26,10 @@ type Font struct {
 		xAdvance            int
 		page                int
 	}
-	kerning   map[[2]rune]int
-	cache     map[rune]*TextureRegion
-	cacheLock sync.Mutex
+	kerning    map[[2]rune]int
+	cache      map[rune]*TextureRegion
+	cacheLock  sync.Mutex
+	textureDir string
 }
 
 func LoadFont(path string) (*Font, error) {
@@ -45,23 +46,19 @@ func LoadFont(path string) (*Font, error) {
 			xAdvance            int
 			page                int
 		}),
-		kerning: make(map[[2]rune]int),
-		cache:   make(map[rune]*TextureRegion),
+		kerning:    make(map[[2]rune]int),
+		cache:      make(map[rune]*TextureRegion),
+		textureDir: filepath.Dir(path),
 	}
 
 	if err := font.parse(file); err != nil {
 		return nil, err
 	}
 
-	dir := filepath.Dir(path)
-	if err := font.loadTextures(dir); err != nil {
-		return nil, err
-	}
-
 	return font, nil
 }
 
-func (f *Font) parse(r io.Reader) error {
+func (font *Font) parse(r io.Reader) error {
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -83,50 +80,55 @@ func (f *Font) parse(r io.Reader) error {
 
 		switch parts[0] {
 		case "info":
-			f.parseInfo(attrs)
+			font.parseInfo(attrs)
 		case "common":
-			f.parseCommon(attrs)
+			font.parseCommon(attrs)
 		case "page":
-			if err := f.parsePage(attrs); err != nil {
+			if err := font.parsePage(attrs); err != nil {
 				return err
 			}
 		case "char":
-			f.parseChar(attrs)
+			font.parseChar(attrs)
 		case "kerning":
-			f.parseKerning(attrs)
+			font.parseKerning(attrs)
 		}
 	}
 	return scanner.Err()
 }
 
-func (f *Font) parseInfo(attrs map[string]string) {
-	f.info.face = attrs["face"]
-	f.info.size = atoi(attrs["size"])
+func (font *Font) parseInfo(attrs map[string]string) {
+	font.info.face = attrs["face"]
+	font.info.size = atoi(attrs["size"])
 	padding := strings.Split(attrs["padding"], ",")
-	f.info.padding.up = atoi(padding[0])
-	f.info.padding.right = atoi(padding[1])
-	f.info.padding.down = atoi(padding[2])
-	f.info.padding.left = atoi(padding[3])
+	font.info.padding.up = atoi(padding[0])
+	font.info.padding.right = atoi(padding[1])
+	font.info.padding.down = atoi(padding[2])
+	font.info.padding.left = atoi(padding[3])
 }
 
-func (f *Font) parseCommon(attrs map[string]string) {
-	f.common.lineHeight = atoi(attrs["lineHeight"])
-	f.common.base = atoi(attrs["base"])
-	f.common.scaleW = atoi(attrs["scaleW"])
-	f.common.scaleH = atoi(attrs["scaleH"])
+func (font *Font) parseCommon(attrs map[string]string) {
+	font.common.lineHeight = atoi(attrs["lineHeight"])
+	font.common.base = atoi(attrs["base"])
+	font.common.scaleW = atoi(attrs["scaleW"])
+	font.common.scaleH = atoi(attrs["scaleH"])
 }
 
-func (f *Font) parsePage(attrs map[string]string) error {
+func (font *Font) parsePage(attrs map[string]string) error {
 	id := atoi(attrs["id"])
-	if id >= len(f.pages) {
-		f.pages = append(f.pages, make([]*TextureRegion, id+1-len(f.pages))...)
+	if id >= len(font.pages) {
+		font.pages = append(font.pages, make([]*TextureRegion, id+1-len(font.pages))...)
 	}
+	texture, err := NewTexture(filepath.Join(font.textureDir, attrs["file"]))
+	if err != nil {
+		return err
+	}
+	font.pages[id] = NewTextureRegion(texture)
 	return nil
 }
 
-func (f *Font) parseChar(attrs map[string]string) {
+func (font *Font) parseChar(attrs map[string]string) {
 	id := atoi(attrs["id"])
-	f.chars[rune(id)] = struct {
+	font.chars[rune(id)] = struct {
 		x, y, width, height int
 		xOffset, yOffset    int
 		xAdvance            int
@@ -143,60 +145,45 @@ func (f *Font) parseChar(attrs map[string]string) {
 	}
 }
 
-func (f *Font) parseKerning(attrs map[string]string) {
+func (font *Font) parseKerning(attrs map[string]string) {
 	first := rune(atoi(attrs["first"]))
 	second := rune(atoi(attrs["second"]))
-	f.kerning[[2]rune{first, second}] = atoi(attrs["amount"])
+	font.kerning[[2]rune{first, second}] = atoi(attrs["amount"])
 }
 
-func (f *Font) loadTextures(textureDir string) error {
-	for i := range f.pages {
-		texture, err := NewTexture(filepath.Join(textureDir, f.getPageFile(i)))
-		if err != nil {
-			return err
-		}
-		f.pages[i] = NewTextureRegion(texture)
-	}
-	return nil
-}
+func (font *Font) getGlyph(ch rune) *TextureRegion {
+	font.cacheLock.Lock()
+	defer font.cacheLock.Unlock()
 
-func (f *Font) getPageFile(id int) string {
-	return strconv.Itoa(id) + ".png"
-}
-
-func (f *Font) getGlyph(ch rune) *TextureRegion {
-	f.cacheLock.Lock()
-	defer f.cacheLock.Unlock()
-
-	if region, exists := f.cache[ch]; exists {
+	if region, exists := font.cache[ch]; exists {
 		return region
 	}
 
-	char, exists := f.chars[ch]
-	if !exists || char.page >= len(f.pages) || f.pages[char.page] == nil {
+	char, exists := font.chars[ch]
+	if !exists || char.page >= len(font.pages) || font.pages[char.page] == nil {
 		return nil
 	}
 
-	page := f.pages[char.page]
+	page := font.pages[char.page]
 	region := &TextureRegion{
 		Texture: page.Texture,
-		U:       float32(char.x) / float32(f.common.scaleW),
-		V:       float32(char.y) / float32(f.common.scaleH),
-		U2:      float32(char.x+char.width) / float32(f.common.scaleW),
-		V2:      float32(char.y+char.height) / float32(f.common.scaleH),
+		U:       float32(char.x) / float32(font.common.scaleW),
+		V:       float32(char.y) / float32(font.common.scaleH),
+		U2:      float32(char.x+char.width) / float32(font.common.scaleW),
+		V2:      float32(char.y+char.height) / float32(font.common.scaleH),
 		Width:   char.width,
 		Height:  char.height,
 	}
 
-	f.cache[ch] = region
+	font.cache[ch] = region
 	return region
 }
 
-func (f *Font) Draw(batch *Batch, text string, x, y float32) {
-	f.DrawEx(batch, text, x, y, 0, len(text), -1, 0, false, "")
+func (font *Font) Draw(batch *Batch, text string, x, y float32) {
+	font.DrawEx(batch, text, x, y, 0, len(text), -1, 0, false, "")
 }
 
-func (f *Font) DrawEx(batch *Batch, text string, x, y float32, start, end int, targetWidth float32, hAlign int, wrap bool, truncate string) {
+func (font *Font) DrawEx(batch *Batch, text string, x, y float32, start, end int, targetWidth float32, hAlign int, wrap bool, truncate string) {
 	if !batch.valid() || start >= end {
 		return
 	}
@@ -205,7 +192,7 @@ func (f *Font) DrawEx(batch *Batch, text string, x, y float32, start, end int, t
 		end = len(text)
 	}
 
-	textWidth := f.MeasureText(text[start:end])
+	textWidth := font.MeasureText(text[start:end])
 	offsetX := float32(0)
 	if targetWidth > 0 {
 		switch hAlign {
@@ -221,23 +208,23 @@ func (f *Font) DrawEx(batch *Batch, text string, x, y float32, start, end int, t
 		ch := rune(text[i])
 		if ch == '\n' {
 			currentX = x + offsetX
-			currentY += float32(f.common.lineHeight)
+			currentY += float32(font.common.lineHeight)
 			continue
 		}
 
-		char, exists := f.chars[ch]
+		char, exists := font.chars[ch]
 		if !exists {
 			continue
 		}
 
 		kerning := 0
 		if i > start {
-			kerning = f.kerning[[2]rune{rune(text[i-1]), ch}]
+			kerning = font.kerning[[2]rune{rune(text[i-1]), ch}]
 		}
 
-		if region := f.getGlyph(ch); region != nil {
+		if region := font.getGlyph(ch); region != nil {
 			posX := currentX + float32(char.xOffset+kerning)
-			posY := currentY + float32(f.common.base-char.yOffset-char.height)
+			posY := currentY + float32(font.common.base-char.yOffset-char.height)
 			batch.DrawRegion(region, posX, posY, float32(region.Width), float32(region.Height))
 		}
 
@@ -245,7 +232,7 @@ func (f *Font) DrawEx(batch *Batch, text string, x, y float32, start, end int, t
 	}
 }
 
-func (f *Font) MeasureText(text string) float32 {
+func (font *Font) MeasureText(text string) float32 {
 	width, maxWidth := float32(0), float32(0)
 	for i, ch := range text {
 		if ch == '\n' {
@@ -256,14 +243,14 @@ func (f *Font) MeasureText(text string) float32 {
 			continue
 		}
 
-		char, exists := f.chars[ch]
+		char, exists := font.chars[ch]
 		if !exists {
 			continue
 		}
 
 		kerning := 0
 		if i > 0 {
-			kerning = f.kerning[[2]rune{rune(text[i-1]), ch}]
+			kerning = font.kerning[[2]rune{rune(text[i-1]), ch}]
 		}
 
 		if i == len(text)-1 {
