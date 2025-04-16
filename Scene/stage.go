@@ -55,9 +55,10 @@ func (stage *Stage) Act(delta float32) {
 }
 
 func (stage *Stage) Draw() {
-	stage.Batch.Begin()
 	stage.Viewport.Apply(false)
+	stage.Batch.SetProjection(stage.Viewport.GetCamera().Matrix)
 
+	stage.Batch.Begin()
 	if stage.sortDirty {
 		sort.SliceStable(stage.Actors, func(i, j int) bool {
 			return stage.Actors[i].ZIndex < stage.Actors[j].ZIndex
