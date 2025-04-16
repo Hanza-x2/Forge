@@ -8,8 +8,8 @@ import (
 )
 
 type Stage struct {
-	Root      *Actor
-	Actors    []*Actor
+	Root      Actor
+	Actors    []Actor
 	Batch     *Graphics.Batch
 	Viewport  Viewports.Viewport
 	sortDirty bool
@@ -17,22 +17,28 @@ type Stage struct {
 
 func NewStage(viewport Viewports.Viewport, batch *Graphics.Batch) *Stage {
 	stage := &Stage{
-		Root:     NewActor(),
+		Root: &BaseActor{
+			ScaleX:   1,
+			ScaleY:   1,
+			Visible:  true,
+			Children: make([]Actor, 0),
+			dirty:    true,
+		},
 		Batch:    batch,
 		Viewport: viewport,
-		Actors:   make([]*Actor, 0),
+		Actors:   make([]Actor, 0),
 	}
-	stage.Root.stage = stage
+	stage.Root.SetStage(stage)
 	return stage
 }
 
-func (stage *Stage) AddActor(actor *Actor) {
+func (stage *Stage) AddActor(actor Actor) {
 	stage.Root.AddChild(actor)
 	stage.Actors = append(stage.Actors, actor)
 	stage.sortDirty = true
 }
 
-func (stage *Stage) RemoveActor(actor *Actor) bool {
+func (stage *Stage) RemoveActor(actor Actor) bool {
 	if stage.Root.RemoveChild(actor) {
 		for i, a := range stage.Actors {
 			if a == actor {
@@ -46,8 +52,8 @@ func (stage *Stage) RemoveActor(actor *Actor) bool {
 }
 
 func (stage *Stage) Clear() {
-	stage.Root.Children = make([]*Actor, 0)
-	stage.Actors = make([]*Actor, 0)
+	stage.Root.RemoveAllChildren()
+	stage.Actors = make([]Actor, 0)
 }
 
 func (stage *Stage) Act(delta float32) {
@@ -61,7 +67,7 @@ func (stage *Stage) Draw() {
 	stage.Batch.Begin()
 	if stage.sortDirty {
 		sort.SliceStable(stage.Actors, func(i, j int) bool {
-			return stage.Actors[i].ZIndex < stage.Actors[j].ZIndex
+			return stage.Actors[i].GetZIndex() < stage.Actors[j].GetZIndex()
 		})
 		stage.sortDirty = false
 	}
@@ -84,7 +90,7 @@ func (stage *Stage) ScreenToStageCoordinates(screenX, screenY float32) (float32,
 	return output.X(), output.Y()
 }
 
-func (stage *Stage) Hit(x, y float32) *Actor {
+func (stage *Stage) Hit(x, y float32) Actor {
 	for i := len(stage.Actors) - 1; i >= 0; i-- {
 		actor := stage.Actors[i]
 		if actor.Hit(x, y) {
