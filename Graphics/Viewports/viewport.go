@@ -7,7 +7,7 @@ import (
 type Viewport interface {
 	Apply(centerCamera bool)
 
-	Update(screenWidth, screenHeight int, centerCamera bool)
+	Update(screenWidth, screenHeight int32, centerCamera bool)
 
 	GetCamera() *Graphics.Camera
 

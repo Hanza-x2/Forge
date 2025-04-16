@@ -10,7 +10,7 @@ type StretchViewport struct {
 	BaseViewport
 }
 
-func NewStretchViewport(worldWidth, worldHeight float32, screenWidth, screenHeight int) *StretchViewport {
+func NewStretchViewport(worldWidth, worldHeight float32, screenWidth, screenHeight int32) *StretchViewport {
 	viewport := &StretchViewport{
 		BaseViewport: BaseViewport{
 			WorldWidth:   worldWidth,
@@ -18,8 +18,8 @@ func NewStretchViewport(worldWidth, worldHeight float32, screenWidth, screenHeig
 			Camera:       Graphics.NewCamera(worldWidth, worldHeight),
 			screenX:      0,
 			screenY:      0,
-			screenWidth:  int32(screenWidth),
-			screenHeight: int32(screenHeight),
+			screenWidth:  screenWidth,
+			screenHeight: screenHeight,
 		},
 	}
 	viewport.Update(screenWidth, screenHeight, true)
@@ -36,10 +36,10 @@ func (viewport *StretchViewport) Apply(centerCamera bool) {
 	viewport.Camera.Update()
 }
 
-func (viewport *StretchViewport) Update(screenWidth, screenHeight int, centerCamera bool) {
+func (viewport *StretchViewport) Update(screenWidth, screenHeight int32, centerCamera bool) {
 	viewport.screenX = 0
 	viewport.screenY = 0
-	viewport.screenWidth = int32(screenWidth)
-	viewport.screenHeight = int32(screenHeight)
+	viewport.screenWidth = screenWidth
+	viewport.screenHeight = screenHeight
 	viewport.Apply(centerCamera)
 }

@@ -10,7 +10,7 @@ type FitViewport struct {
 	BaseViewport
 }
 
-func NewFitViewport(worldWidth, worldHeight float32, screenWidth, screenHeight int) *FitViewport {
+func NewFitViewport(worldWidth, worldHeight float32, screenWidth, screenHeight int32) *FitViewport {
 	viewport := &FitViewport{
 		BaseViewport: BaseViewport{
 			WorldWidth:  worldWidth,
@@ -32,7 +32,7 @@ func (viewport *FitViewport) Apply(centerCamera bool) {
 	viewport.Camera.Update()
 }
 
-func (viewport *FitViewport) Update(screenWidth, screenHeight int, centerCamera bool) {
+func (viewport *FitViewport) Update(screenWidth, screenHeight int32, centerCamera bool) {
 	targetRatio := float32(screenHeight) / float32(screenWidth)
 	sourceRatio := viewport.WorldHeight / viewport.WorldWidth
 
@@ -46,8 +46,8 @@ func (viewport *FitViewport) Update(screenWidth, screenHeight int, centerCamera 
 	scaledWidth := int32(viewport.WorldWidth * scale)
 	scaledHeight := int32(viewport.WorldHeight * scale)
 
-	viewport.screenX = (int32(screenWidth) - scaledWidth) / 2
-	viewport.screenY = (int32(screenHeight) - scaledHeight) / 2
+	viewport.screenX = (screenWidth - scaledWidth) / 2
+	viewport.screenY = (screenHeight - scaledHeight) / 2
 	viewport.screenWidth = scaledWidth
 	viewport.screenHeight = scaledHeight
 
