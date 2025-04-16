@@ -12,20 +12,20 @@ type Behavior interface {
 }
 
 type Node struct {
-	Name      string
-	Behavior  Behavior
-	X, Y      float32
-	Width     float32
-	Height    float32
-	OriginX   float32
-	OriginY   float32
-	ScaleX    float32
-	ScaleY    float32
-	Rotation  float32
-	Visible   bool
-	UserData  interface{}
-	children  []*Node
+	name      string
+	behavior  Behavior
+	x, y      float32
+	width     float32
+	height    float32
+	originX   float32
+	originY   float32
+	scaleX    float32
+	scaleY    float32
+	rotation  float32
+	visible   bool
 	parent    *Node
+	children  []*Node
+	userData  interface{}
 	scene     *Scene
 	transform mgl32.Mat3
 	dirty     bool
@@ -33,37 +33,105 @@ type Node struct {
 
 func NewNode() *Node {
 	return &Node{
-		ScaleX:   1,
-		ScaleY:   1,
-		Visible:  true,
+		scaleX:   1,
+		scaleY:   1,
+		visible:  true,
 		children: make([]*Node, 0),
 		dirty:    true,
 	}
 }
 
+func (node *Node) GetName() string {
+	return node.name
+}
+
+func (node *Node) SetName(name string) {
+	node.name = name
+}
+
+func (node *Node) GetBehavior() Behavior {
+	return node.behavior
+}
+
+func (node *Node) SetBehavior(behavior Behavior) {
+	node.behavior = behavior
+}
+
+func (node *Node) GetX() float32 {
+	return node.x
+}
+
+func (node *Node) GetY() float32 {
+	return node.y
+}
+
 func (node *Node) SetPosition(x, y float32) {
-	node.X, node.Y = x, y
+	node.x, node.y = x, y
 	node.dirty = true
+}
+
+func (node *Node) GetWidth() float32 {
+	return node.width
+}
+
+func (node *Node) GetHeight() float32 {
+	return node.height
 }
 
 func (node *Node) SetSize(width, height float32) {
-	node.Width, node.Height = width, height
+	node.width, node.height = width, height
 	node.dirty = true
+}
+
+func (node *Node) GetOriginX() float32 {
+	return node.originX
+}
+
+func (node *Node) GetOriginY() float32 {
+	return node.originY
 }
 
 func (node *Node) SetOrigin(originX, originY float32) {
-	node.OriginX, node.OriginY = originX, originY
+	node.originX, node.originY = originX, originY
 	node.dirty = true
+}
+
+func (node *Node) GetScaleX() float32 {
+	return node.scaleX
+}
+
+func (node *Node) GetScaleY() float32 {
+	return node.scaleY
 }
 
 func (node *Node) SetScale(scaleX, scaleY float32) {
-	node.ScaleX, node.ScaleY = scaleX, scaleY
+	node.scaleX, node.scaleY = scaleX, scaleY
 	node.dirty = true
 }
 
+func (node *Node) GetRotation() float32 {
+	return node.rotation
+}
+
 func (node *Node) SetRotation(degrees float32) {
-	node.Rotation = degrees
+	node.rotation = degrees
 	node.dirty = true
+}
+
+func (node *Node) IsVisible() bool {
+	return node.visible
+}
+
+func (node *Node) SetVisible(visible bool) {
+	node.visible = visible
+}
+
+func (node *Node) GetUserData() interface{} {
+	return node.userData
+}
+
+func (node *Node) SetUserData(data interface{}) {
+	node.userData = data
 }
 
 func (node *Node) GetParent() *Node {
@@ -137,9 +205,9 @@ func transformCoordinate(vecX, vecY float32, mat mgl32.Mat3) mgl32.Vec2 {
 
 func (node *Node) GetWorldTransform() (x, y, scaleX, scaleY, rotation float32) {
 	// Start with local transform
-	x, y = node.X, node.Y
-	scaleX, scaleY = node.ScaleX, node.ScaleY
-	rotation = node.Rotation
+	x, y = node.x, node.y
+	scaleX, scaleY = node.scaleX, node.scaleY
+	rotation = node.rotation
 
 	// Apply parent transforms recursively
 	if parent := node.GetParent(); parent != nil {
@@ -168,7 +236,7 @@ func (node *Node) GetWorldTransform() (x, y, scaleX, scaleY, rotation float32) {
 
 func (node *Node) GetWorldTransformEx() (x, y, originX, originY, width, height, scaleX, scaleY, rotation float32) {
 	x, y, scaleX, scaleY, rotation = node.GetWorldTransform()
-	return x, y, node.OriginX, node.OriginY, node.Width, node.Height, scaleX, scaleY, rotation
+	return x, y, node.originX, node.originY, node.width, node.height, scaleX, scaleY, rotation
 }
 
 func (node *Node) LocalToSceneCoordinates(localX, localY float32) (float32, float32) {
@@ -193,17 +261,17 @@ func (node *Node) ComputeTransform() mgl32.Mat3 {
 		transform = node.parent.ComputeTransform()
 	}
 
-	transform = transform.Mul3(mgl32.Translate2D(node.X, node.Y))
-	if node.Rotation != 0 {
-		transform = transform.Mul3(mgl32.HomogRotate2D(mgl32.DegToRad(node.Rotation)))
+	transform = transform.Mul3(mgl32.Translate2D(node.x, node.y))
+	if node.rotation != 0 {
+		transform = transform.Mul3(mgl32.HomogRotate2D(mgl32.DegToRad(node.rotation)))
 	}
 
-	if node.ScaleX != 1 || node.ScaleY != 1 {
-		transform = transform.Mul3(mgl32.Scale2D(node.ScaleX, node.ScaleY))
+	if node.scaleX != 1 || node.scaleY != 1 {
+		transform = transform.Mul3(mgl32.Scale2D(node.scaleX, node.scaleY))
 	}
 
-	if node.OriginX != 0 || node.OriginY != 0 {
-		transform = transform.Mul3(mgl32.Translate2D(-node.OriginX, -node.OriginY))
+	if node.originX != 0 || node.originY != 0 {
+		transform = transform.Mul3(mgl32.Translate2D(-node.originX, -node.originY))
 	}
 
 	if node.parent == nil {
@@ -215,11 +283,11 @@ func (node *Node) ComputeTransform() mgl32.Mat3 {
 }
 
 func (node *Node) Draw(batch *Graphics.Batch) {
-	if !node.Visible {
+	if !node.visible {
 		return
 	}
-	if node.Behavior != nil {
-		node.Behavior.Draw(node, batch)
+	if node.behavior != nil {
+		node.behavior.Draw(node, batch)
 	}
 	for _, child := range node.children {
 		child.Draw(batch)
@@ -227,8 +295,8 @@ func (node *Node) Draw(batch *Graphics.Batch) {
 }
 
 func (node *Node) Act(delta float32) {
-	if node.Behavior != nil {
-		node.Behavior.Act(node, delta)
+	if node.behavior != nil {
+		node.behavior.Act(node, delta)
 	}
 	for _, child := range node.children {
 		child.Act(delta)
@@ -236,9 +304,9 @@ func (node *Node) Act(delta float32) {
 }
 
 func (node *Node) Hit(x, y float32) bool {
-	if !node.Visible {
+	if !node.visible {
 		return false
 	}
 	localX, localY := node.SceneToLocalCoordinates(x, y)
-	return localX >= 0 && localY >= 0 && localX < node.Width && localY < node.Height
+	return localX >= 0 && localY >= 0 && localX < node.width && localY < node.height
 }
