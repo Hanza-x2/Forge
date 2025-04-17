@@ -41,7 +41,7 @@ func hitChildren(parent *Node, x, y float32) *Node {
 		if node.Hit(x, y) {
 			return node
 		}
-		child := hitChildren(node, x-1, y-1)
+		child := hitChildren(node, x-0.5, y-0.5)
 		if child != nil {
 			return child
 		}
