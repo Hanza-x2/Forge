@@ -64,7 +64,7 @@ func drawDebugChildren(parent *Node, batch *Graphics.Batch) {
 	for i := len(nodes) - 1; i >= 0; i-- {
 		node := nodes[i]
 		x, y, originX, originY, width, height, scaleX, scaleY, rotation := node.GetWorldTransformEx()
-		batch.LineRectEx(x, y, originX, originY, width, height, scaleX, scaleY, rotation, 1)
+		batch.LineRectEx(x, y, originX, originY, width, height, scaleX, scaleY, rotation, Graphics.YELLOW, 1)
 		drawDebugChildren(node, batch)
 	}
 }
@@ -73,9 +73,7 @@ func (scene *Scene) DrawDebug() {
 	scene.Viewport.Apply(false)
 	scene.Batch.SetProjection(scene.Viewport.GetCamera().Matrix)
 	scene.Batch.Begin()
-	scene.Batch.SetColor(Graphics.YELLOW)
 	drawDebugChildren(scene.Root, scene.Batch)
-	scene.Batch.SetColor(Graphics.WHITE)
 	scene.Batch.End()
 }
 

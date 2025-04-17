@@ -265,8 +265,7 @@ func (batch *Batch) Push(
 	batch.vertexCount += 4
 }
 
-func (batch *Batch) Line(x1, y1, x2, y2, stroke float32) {
-	color := batch.color
+func (batch *Batch) Line(x1, y1, x2, y2, color, stroke float32) {
 	batch.LineEx(x1, y1, color, x2, y2, color, stroke)
 }
 
@@ -291,15 +290,14 @@ func (batch *Batch) LineEx(x1, y1, c1, x2, y2, c2, stroke float32) {
 	)
 }
 
-func (batch *Batch) LineRect(x, y, width, height, stroke float32) {
-	color := batch.color
+func (batch *Batch) LineRect(x, y, width, height, color, stroke float32) {
 	batch.LineEx(x, y, color, x+width, y, color, stroke)
 	batch.LineEx(x+width, y, color, x+width, y+height, color, stroke)
 	batch.LineEx(x+width, y+height, color, x, y+height, color, stroke)
 	batch.LineEx(x, y+height, color, x, y, color, stroke)
 }
 
-func (batch *Batch) LineRectEx(x, y, originX, originY, width, height, scaleX, scaleY, rotation, stroke float32) {
+func (batch *Batch) LineRectEx(x, y, originX, originY, width, height, scaleX, scaleY, rotation, color, stroke float32) {
 	if !batch.valid() {
 		return
 	}
@@ -326,15 +324,13 @@ func (batch *Batch) LineRectEx(x, y, originX, originY, width, height, scaleX, sc
 	y3 := sin*fx2 + cos*fy2 + worldOriginY
 	x4 := x1 + (x3 - x2)
 	y4 := y3 - (y2 - y1)
-	color := batch.color
 	batch.LineEx(x1, y1, color, x2, y2, color, stroke)
 	batch.LineEx(x2, y2, color, x3, y3, color, stroke)
 	batch.LineEx(x3, y3, color, x4, y4, color, stroke)
 	batch.LineEx(x4, y4, color, x1, y1, color, stroke)
 }
 
-func (batch *Batch) FillQuad(x1, y1, x2, y2, x3, y3, x4, y4 float32) {
-	color := batch.color
+func (batch *Batch) FillQuad(x1, y1, x2, y2, x3, y3, x4, y4, color float32) {
 	batch.FillQuadEx(x1, y1, color, x2, y2, color, x3, y3, color, x4, y4, color)
 }
 
@@ -347,8 +343,8 @@ func (batch *Batch) FillQuadEx(x1, y1, c1, x2, y2, c2, x3, y3, c3, x4, y4, c4 fl
 	)
 }
 
-func (batch *Batch) FillRect(x, y, width, height float32) {
-	batch.FillQuad(x, y, x+width, y, x+width, y+height, x, y+height)
+func (batch *Batch) FillRect(x, y, width, height, color float32) {
+	batch.FillQuad(x, y, x+width, y, x+width, y+height, x, y+height, color)
 }
 
 func (batch *Batch) FillRectEx(x, y, width, height, c1, c2, c3, c4 float32) {
