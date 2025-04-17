@@ -2,14 +2,31 @@ package Input
 
 import "github.com/go-gl/glfw/v3.3/glfw"
 
-type KeyCallback func(key glfw.Key, action glfw.Action)
-type MouseButtonCallback func(button glfw.MouseButton, action glfw.Action)
+type Action int
+
+const (
+	ActionRelease Action = iota
+	ActionPress
+	ActionRepeat
+)
+
+type ModifierKey int
+
+const (
+	ModShift ModifierKey = 1 << iota
+	ModControl
+	ModAlt
+	ModSuper
+)
+
+type KeyCallback func(key Key, action Action, modifiers ModifierKey)
+type MouseButtonCallback func(button MouseButton, action Action, modifiers ModifierKey, x, y float32)
 type MouseMoveCallback func(x, y float32)
 type MouseScrollCallback func(x, y float32)
 
 type Handler struct {
-	keys         [glfw.KeyLast + 1]bool
-	mouseButtons [glfw.MouseButtonLast + 1]bool
+	keys         [KeyLast + 1]bool
+	mouseButtons [MouseButtonLast + 1]bool
 	mouseX       float32
 	mouseY       float32
 
@@ -42,15 +59,15 @@ func (handler *Handler) SetMouseScrollCallback(callback MouseScrollCallback) {
 	handler.mouseScrollCallback = callback
 }
 
-func (handler *Handler) IsKeyPressed(key glfw.Key) bool {
-	if key < 0 || key > glfw.KeyLast {
+func (handler *Handler) IsKeyPressed(key Key) bool {
+	if key < 0 || key > KeyLast {
 		return false
 	}
 	return handler.keys[key]
 }
 
-func (handler *Handler) IsMouseButtonPressed(button glfw.MouseButton) bool {
-	if button < 0 || button > glfw.MouseButtonLast {
+func (handler *Handler) IsMouseButtonPressed(button MouseButton) bool {
+	if button < 0 || button > MouseButtonLast {
 		return false
 	}
 	return handler.mouseButtons[button]
@@ -68,21 +85,43 @@ func (handler *Handler) GetMouseY() float32 {
 	return handler.mouseY
 }
 
-func (handler *Handler) keyCallbackWrapper(_ *glfw.Window, key glfw.Key, _ int, action glfw.Action, _ glfw.ModifierKey) {
-	if key >= 0 && int(key) < len(handler.keys) {
-		if action == glfw.Press {
+func convertGLFWAction(glfwAction glfw.Action) Action {
+	return Action(glfwAction)
+}
+
+func convertGLFWMods(glfwMods glfw.ModifierKey) ModifierKey {
+	var mods ModifierKey
+	if glfwMods&glfw.ModShift != 0 {
+		mods |= ModShift
+	}
+	if glfwMods&glfw.ModControl != 0 {
+		mods |= ModControl
+	}
+	if glfwMods&glfw.ModAlt != 0 {
+		mods |= ModAlt
+	}
+	if glfwMods&glfw.ModSuper != 0 {
+		mods |= ModSuper
+	}
+	return mods
+}
+
+func (handler *Handler) keyCallbackWrapper(_ *glfw.Window, glfwKey glfw.Key, _ int, glfwAction glfw.Action, mods glfw.ModifierKey) {
+	key := convertGLFWKey(glfwKey)
+	if key >= 0 && key <= KeyLast {
+		if glfwAction == glfw.Press {
 			handler.keys[key] = true
-		} else if action == glfw.Release {
+		} else if glfwAction == glfw.Release {
 			handler.keys[key] = false
 		}
 	}
-
 	if handler.keyCallback != nil {
-		handler.keyCallback(key, action)
+		handler.keyCallback(key, convertGLFWAction(glfwAction), convertGLFWMods(mods))
 	}
 }
 
-func (handler *Handler) mouseButtonCallbackWrapper(_ *glfw.Window, button glfw.MouseButton, action glfw.Action, _ glfw.ModifierKey) {
+func (handler *Handler) mouseButtonCallbackWrapper(_ *glfw.Window, glfwButton glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+	button := convertGLFWButton(glfwButton)
 	if button >= 0 && int(button) < len(handler.mouseButtons) {
 		if action == glfw.Press {
 			handler.mouseButtons[button] = true
@@ -92,7 +131,7 @@ func (handler *Handler) mouseButtonCallbackWrapper(_ *glfw.Window, button glfw.M
 	}
 
 	if handler.mouseButtonCallback != nil {
-		handler.mouseButtonCallback(button, action)
+		handler.mouseButtonCallback(button, convertGLFWAction(action), convertGLFWMods(mods), handler.mouseX, handler.mouseY)
 	}
 }
 
@@ -101,7 +140,6 @@ func (handler *Handler) mouseMoveCallbackWrapper(_ *glfw.Window, x, y float64) {
 	castY := float32(y)
 	handler.mouseX = castX
 	handler.mouseY = castY
-
 	if handler.mouseMoveCallback != nil {
 		handler.mouseMoveCallback(castX, castY)
 	}
