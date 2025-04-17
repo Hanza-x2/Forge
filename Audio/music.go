@@ -5,7 +5,6 @@ import (
 	"math"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/faiface/beep"
@@ -22,7 +21,6 @@ type Music struct {
 	ctrl     *beep.Ctrl
 	gain     *effects.Gain
 	loop     bool
-	mu       sync.Mutex
 	playing  bool
 }
 
@@ -68,8 +66,6 @@ func NewMusic(filePath string) (*Music, error) {
 }
 
 func (music *Music) Play() {
-	music.mu.Lock()
-	defer music.mu.Unlock()
 	if music.playing {
 		return
 	}
@@ -88,18 +84,16 @@ func (music *Music) Play() {
 	music.gain.Streamer = baseStreamer
 	music.ctrl = &beep.Ctrl{Streamer: music.gain}
 
-	speaker.Play(beep.Seq(music.ctrl, beep.Callback(func() {
-		music.mu.Lock()
-		music.playing = false
-		music.mu.Unlock()
-	})))
+	go func() {
+		speaker.Play(beep.Seq(music.ctrl, beep.Callback(func() {
+			music.playing = false
+		})))
+	}()
 
 	music.playing = true
 }
 
 func (music *Music) Stop() {
-	music.mu.Lock()
-	defer music.mu.Unlock()
 	if music.ctrl != nil {
 		speaker.Lock()
 		music.ctrl.Paused = true
@@ -109,8 +103,6 @@ func (music *Music) Stop() {
 }
 
 func (music *Music) SetVolume(volume float32) {
-	music.mu.Lock()
-	defer music.mu.Unlock()
 	if volume <= 0 {
 		music.gain.Gain = -100
 	} else {
@@ -119,20 +111,14 @@ func (music *Music) SetVolume(volume float32) {
 }
 
 func (music *Music) SetLooping(loop bool) {
-	music.mu.Lock()
-	defer music.mu.Unlock()
 	music.loop = loop
 }
 
 func (music *Music) IsPlaying() bool {
-	music.mu.Lock()
-	defer music.mu.Unlock()
 	return music.playing
 }
 
 func (music *Music) Close() {
-	music.mu.Lock()
-	defer music.mu.Unlock()
 	if music.streamer != nil {
 		music.streamer.Close()
 	}
