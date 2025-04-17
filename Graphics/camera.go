@@ -1,7 +1,6 @@
 package Graphics
 
 import (
-	"forgejo.max7.fun/m.alkhatib/GoForge/Math"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
@@ -29,11 +28,12 @@ func (camera *Camera) Update() {
 	width := camera.Width * camera.Zoom
 	height := camera.Height * camera.Zoom
 
-	camera.Matrix = mgl32.Ortho2D(
+	camera.Matrix = mgl32.Ortho(
 		camera.Position.X()-width/2,
 		camera.Position.X()+width/2,
 		camera.Position.Y()-height/2,
 		camera.Position.Y()+height/2,
+		-1, 1,
 	)
 	camera.Inverse = camera.Matrix.Inv()
 }
@@ -50,16 +50,16 @@ func (camera *Camera) Translate(x, y float32) {
 }
 
 func (camera *Camera) Unproject(input mgl32.Vec2, viewportX, viewportY, viewportWidth, viewportHeight float32) mgl32.Vec2 {
-	return Math.Vec2MulMat4(mgl32.Vec2{
-		(2*(input.X()-viewportX))/viewportWidth - 1,
-		(2*(input.Y()-viewportY))/viewportHeight - 1,
-	}, camera.Inverse)
+	x := (2*(input.X()-viewportX))/viewportWidth - 1
+	y := 1 - (2*(input.Y()-viewportY))/viewportHeight
+	output := mgl32.TransformCoordinate(mgl32.Vec3{x, y, 0}, camera.Inverse)
+	return mgl32.Vec2{output.X(), output.Y()}
 }
 
 func (camera *Camera) Project(input mgl32.Vec2, viewportX, viewportY, viewportWidth, viewportHeight float32) mgl32.Vec2 {
-	output := Math.Vec2MulMat4(input, camera.Matrix)
+	output := mgl32.TransformCoordinate(mgl32.Vec3{input.X(), input.Y(), 0}, camera.Matrix)
 	return mgl32.Vec2{
 		viewportWidth*(output.X()+1)/2 + viewportX,
-		viewportHeight*(output.Y()+1)/2 + viewportY,
+		viewportHeight*(1-output.Y())/2 + viewportY,
 	}
 }
