@@ -11,125 +11,46 @@ type Behavior interface {
 }
 
 type Node struct {
-	name     string
-	behavior Behavior
-	x, y     float32
-	width    float32
-	height   float32
-	originX  float32
-	originY  float32
-	scaleX   float32
-	scaleY   float32
-	rotation float32
-	visible  bool
+	Name     string
+	Behavior Behavior
+	X, Y     float32
+	Width    float32
+	Height   float32
+	OriginX  float32
+	OriginY  float32
+	ScaleX   float32
+	ScaleY   float32
+	Rotation float32
+	Visible  bool
+	UserData interface{}
 	parent   *Node
 	children []*Node
-	userData interface{}
 	scene    *Scene
-	dirty    bool
 }
 
 func NewNode() *Node {
 	return &Node{
-		scaleX:   1,
-		scaleY:   1,
-		visible:  true,
+		ScaleX:   1,
+		ScaleY:   1,
+		Visible:  true,
 		children: make([]*Node, 0),
-		dirty:    true,
 	}
 }
 
-func (node *Node) GetName() string {
-	return node.name
-}
-
-func (node *Node) SetName(name string) {
-	node.name = name
-}
-
-func (node *Node) GetBehavior() Behavior {
-	return node.behavior
-}
-
-func (node *Node) SetBehavior(behavior Behavior) {
-	node.behavior = behavior
-}
-
-func (node *Node) GetX() float32 {
-	return node.x
-}
-
-func (node *Node) GetY() float32 {
-	return node.y
-}
-
 func (node *Node) SetPosition(x, y float32) {
-	node.x, node.y = x, y
-	node.dirty = true
-}
-
-func (node *Node) GetWidth() float32 {
-	return node.width
-}
-
-func (node *Node) GetHeight() float32 {
-	return node.height
+	node.X, node.Y = x, y
 }
 
 func (node *Node) SetSize(width, height float32) {
-	node.width, node.height = width, height
-	node.dirty = true
-}
-
-func (node *Node) GetOriginX() float32 {
-	return node.originX
-}
-
-func (node *Node) GetOriginY() float32 {
-	return node.originY
+	node.Width, node.Height = width, height
 }
 
 func (node *Node) SetOrigin(originX, originY float32) {
-	node.originX, node.originY = originX, originY
-	node.dirty = true
-}
-
-func (node *Node) GetScaleX() float32 {
-	return node.scaleX
-}
-
-func (node *Node) GetScaleY() float32 {
-	return node.scaleY
+	node.OriginX, node.OriginY = originX, originY
 }
 
 func (node *Node) SetScale(scaleX, scaleY float32) {
-	node.scaleX, node.scaleY = scaleX, scaleY
-	node.dirty = true
-}
-
-func (node *Node) GetRotation() float32 {
-	return node.rotation
-}
-
-func (node *Node) SetRotation(degrees float32) {
-	node.rotation = degrees
-	node.dirty = true
-}
-
-func (node *Node) IsVisible() bool {
-	return node.visible
-}
-
-func (node *Node) SetVisible(visible bool) {
-	node.visible = visible
-}
-
-func (node *Node) GetUserData() interface{} {
-	return node.userData
-}
-
-func (node *Node) SetUserData(data interface{}) {
-	node.userData = data
+	node.ScaleX, node.ScaleY = scaleX, scaleY
 }
 
 func (node *Node) GetParent() *Node {
@@ -196,9 +117,9 @@ func (node *Node) RemoveAllChildren() {
 }
 
 func (node *Node) GetWorldTransform() (x, y, scaleX, scaleY, rotation float32) {
-	x, y = node.x, node.y
-	scaleX, scaleY = node.scaleX, node.scaleY
-	rotation = node.rotation
+	x, y = node.X, node.Y
+	scaleX, scaleY = node.ScaleX, node.ScaleY
+	rotation = node.Rotation
 	if parent := node.GetParent(); parent != nil {
 		parentX, parentY, parentScaleX, parentScaleY, parentRotation := parent.GetWorldTransform()
 		rad := float64(parentRotation * math.Pi / 180)
@@ -217,12 +138,12 @@ func (node *Node) GetWorldTransform() (x, y, scaleX, scaleY, rotation float32) {
 
 func (node *Node) GetWorldTransformEx() (x, y, originX, originY, width, height, scaleX, scaleY, rotation float32) {
 	x, y, scaleX, scaleY, rotation = node.GetWorldTransform()
-	return x, y, node.originX, node.originY, node.width, node.height, scaleX, scaleY, rotation
+	return x, y, node.OriginX, node.OriginY, node.Width, node.Height, scaleX, scaleY, rotation
 }
 
 func (node *Node) Act(delta float32) {
-	if node.behavior != nil {
-		node.behavior.Act(node, delta)
+	if node.Behavior != nil {
+		node.Behavior.Act(node, delta)
 	}
 	for _, child := range node.children {
 		child.Act(delta)
@@ -230,11 +151,11 @@ func (node *Node) Act(delta float32) {
 }
 
 func (node *Node) Draw(batch *Graphics.Batch) {
-	if !node.visible {
+	if !node.Visible {
 		return
 	}
-	if node.behavior != nil {
-		node.behavior.Draw(node, batch)
+	if node.Behavior != nil {
+		node.Behavior.Draw(node, batch)
 	}
 	for _, child := range node.children {
 		child.Draw(batch)
@@ -242,51 +163,51 @@ func (node *Node) Draw(batch *Graphics.Batch) {
 }
 
 func (node *Node) LocalToParentCoordinates(localX, localY float32) (float32, float32) {
-	rotation := -node.rotation
+	rotation := -node.Rotation
 	if rotation == 0 {
-		if node.scaleX == 1 && node.scaleY == 1 {
-			localX += node.x
-			localY += node.y
+		if node.ScaleX == 1 && node.ScaleY == 1 {
+			localX += node.X
+			localY += node.Y
 		} else {
-			localX = (localX-node.originX)*node.scaleX + node.originX + node.x
-			localY = (localY-node.originY)*node.scaleY + node.originY + node.y
+			localX = (localX-node.OriginX)*node.ScaleX + node.OriginX + node.X
+			localY = (localY-node.OriginY)*node.ScaleY + node.OriginY + node.Y
 		}
 	} else {
 		rad := float64(rotation * math.Pi / 180)
 		cos := float32(math.Cos(rad))
 		sin := float32(math.Sin(rad))
-		toX := (localX - node.originX) * node.scaleX
-		toY := (localY - node.originY) * node.scaleY
-		localX = (toX*cos + toY*sin) + node.originX + node.x
-		localY = (toX*-sin + toY*cos) + node.originY + node.y
+		toX := (localX - node.OriginX) * node.ScaleX
+		toY := (localY - node.OriginY) * node.ScaleY
+		localX = (toX*cos + toY*sin) + node.OriginX + node.X
+		localY = (toX*-sin + toY*cos) + node.OriginY + node.Y
 	}
 	return localX, localY
 }
 
 func (node *Node) ParentToLocalCoordinates(parentX, parentY float32) (float32, float32) {
-	if node.rotation == 0 {
-		if node.scaleX == 1 && node.scaleY == 1 {
-			parentX -= node.x
-			parentY -= node.y
+	if node.Rotation == 0 {
+		if node.ScaleX == 1 && node.ScaleY == 1 {
+			parentX -= node.X
+			parentY -= node.Y
 		} else {
-			parentX = (parentX-node.x-node.originX)/node.scaleX + node.originX
-			parentY = (parentY-node.y-node.originY)/node.scaleY + node.originY
+			parentX = (parentX-node.X-node.OriginX)/node.ScaleX + node.OriginX
+			parentY = (parentY-node.Y-node.OriginY)/node.ScaleY + node.OriginY
 		}
 	} else {
-		rad := float64(node.rotation * math.Pi / 180)
+		rad := float64(node.Rotation * math.Pi / 180)
 		cos := float32(math.Cos(rad))
 		sin := float32(math.Sin(rad))
-		toX := parentX - node.x - node.originX
-		toY := parentY - node.y - node.originY
-		parentX = (toX*cos+toY*sin)/node.scaleX + node.originX
-		parentY = (toX*-sin+toY*cos)/node.scaleY + node.originY
+		toX := parentX - node.X - node.OriginX
+		toY := parentY - node.Y - node.OriginY
+		parentX = (toX*cos+toY*sin)/node.ScaleX + node.OriginX
+		parentY = (toX*-sin+toY*cos)/node.ScaleY + node.OriginY
 	}
 	return parentX, parentY
 }
 
 func (node *Node) Hit(x, y float32) bool {
-	if !node.visible {
+	if !node.Visible {
 		return false
 	}
-	return x >= 0 && y >= 0 && x < node.width && y < node.height
+	return x >= 0 && y >= 0 && x < node.Width && y < node.Height
 }
