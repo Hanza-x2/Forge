@@ -1,6 +1,7 @@
 package Graphics
 
 import (
+	"forgejo.max7.fun/m.alkhatib/GoForge/Math"
 	"github.com/go-gl/mathgl/mgl32"
 )
 
@@ -48,20 +49,17 @@ func (camera *Camera) Translate(x, y float32) {
 	camera.Update()
 }
 
-func (camera *Camera) Unproject(screenPos mgl32.Vec2, viewportWidth, viewportHeight float32) mgl32.Vec2 {
-	normalizedX := 2*screenPos.X()/viewportWidth - 1
-	normalizedY := 1 - 2*screenPos.Y()/viewportHeight
-
-	worldPos := camera.Inverse.Mul4x1(mgl32.Vec4{normalizedX, normalizedY, 0, 1})
-	return mgl32.Vec2{worldPos.X(), worldPos.Y()}.Add(camera.Position)
+func (camera *Camera) Unproject(input mgl32.Vec2, viewportX, viewportY, viewportWidth, viewportHeight float32) mgl32.Vec2 {
+	return Math.Vec2MulMat4(mgl32.Vec2{
+		(2*(input.X()-viewportX))/viewportWidth - 1,
+		(2*(input.Y()-viewportY))/viewportHeight - 1,
+	}, camera.Inverse)
 }
 
-func (camera *Camera) Project(worldPos mgl32.Vec2, viewportWidth, viewportHeight float32) mgl32.Vec2 {
-	relativePos := worldPos.Sub(camera.Position)
-	clipPos := camera.Matrix.Mul4x1(mgl32.Vec4{relativePos.X(), relativePos.Y(), 0, 1})
-
+func (camera *Camera) Project(input mgl32.Vec2, viewportX, viewportY, viewportWidth, viewportHeight float32) mgl32.Vec2 {
+	output := Math.Vec2MulMat4(input, camera.Matrix)
 	return mgl32.Vec2{
-		(clipPos.X() + 1) * viewportWidth / 2,
-		(1 - clipPos.Y()) * viewportHeight / 2,
+		viewportWidth*(output.X()+1)/2 + viewportX,
+		viewportHeight*(output.Y()+1)/2 + viewportY,
 	}
 }
