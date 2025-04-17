@@ -2,15 +2,13 @@ package Viewports
 
 import (
 	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics"
-	"github.com/go-gl/gl/v3.3-core/gl"
-	"github.com/go-gl/mathgl/mgl32"
 )
 
 type StretchViewport struct {
 	BaseViewport
 }
 
-func NewStretchViewport(worldWidth, worldHeight float32, screenWidth, screenHeight int32) *StretchViewport {
+func NewStretchViewport(worldWidth, worldHeight float32, screenWidth, screenHeight float32) *StretchViewport {
 	viewport := &StretchViewport{
 		BaseViewport: BaseViewport{
 			WorldWidth:   worldWidth,
@@ -26,17 +24,7 @@ func NewStretchViewport(worldWidth, worldHeight float32, screenWidth, screenHeig
 	return viewport
 }
 
-func (viewport *StretchViewport) Apply(centerCamera bool) {
-	gl.Viewport(viewport.screenX, viewport.screenY, viewport.screenWidth, viewport.screenHeight)
-	viewport.Camera.Width = viewport.WorldWidth
-	viewport.Camera.Height = viewport.WorldHeight
-	if centerCamera {
-		viewport.Camera.Position = mgl32.Vec2{viewport.WorldWidth / 2, viewport.WorldHeight / 2}
-	}
-	viewport.Camera.Update()
-}
-
-func (viewport *StretchViewport) Update(screenWidth, screenHeight int32, centerCamera bool) {
+func (viewport *StretchViewport) Update(screenWidth, screenHeight float32, centerCamera bool) {
 	viewport.screenX = 0
 	viewport.screenY = 0
 	viewport.screenWidth = screenWidth
