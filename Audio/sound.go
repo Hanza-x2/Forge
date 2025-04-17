@@ -5,7 +5,6 @@ import (
 	"math"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/faiface/beep"
@@ -20,7 +19,6 @@ type Sound struct {
 	format  beep.Format
 	ctrl    *beep.Ctrl
 	gain    *effects.Gain
-	mu      sync.Mutex
 	playing bool
 }
 
@@ -67,7 +65,6 @@ func NewSound(filePath string) (*Sound, error) {
 }
 
 func (sound *Sound) Play(volume float32) {
-	sound.mu.Lock()
 	sound.Stop()
 
 	streamer := sound.buffer.Streamer(0, sound.buffer.Len())
@@ -75,19 +72,15 @@ func (sound *Sound) Play(volume float32) {
 	sound.SetVolume(volume)
 	sound.ctrl = &beep.Ctrl{Streamer: sound.gain}
 	sound.playing = true
-	sound.mu.Unlock()
 
-	speaker.Play(beep.Seq(sound.ctrl, beep.Callback(func() {
-		sound.mu.Lock()
-		sound.playing = false
-		sound.mu.Unlock()
-	})))
+	go func() {
+		speaker.Play(beep.Seq(sound.ctrl, beep.Callback(func() {
+			sound.playing = false
+		})))
+	}()
 }
 
 func (sound *Sound) Stop() {
-	sound.mu.Lock()
-	defer sound.mu.Unlock()
-
 	if sound.ctrl != nil {
 		speaker.Lock()
 		sound.ctrl.Paused = true
@@ -97,8 +90,6 @@ func (sound *Sound) Stop() {
 }
 
 func (sound *Sound) SetVolume(volume float32) {
-	sound.mu.Lock()
-	defer sound.mu.Unlock()
 	if volume <= 0 {
 		sound.gain.Gain = -100
 	} else {
@@ -107,7 +98,5 @@ func (sound *Sound) SetVolume(volume float32) {
 }
 
 func (sound *Sound) IsPlaying() bool {
-	sound.mu.Lock()
-	defer sound.mu.Unlock()
 	return sound.playing
 }
