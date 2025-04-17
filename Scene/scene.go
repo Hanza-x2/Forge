@@ -34,17 +34,23 @@ func (scene *Scene) Clear() {
 	scene.Root.RemoveAllChildren()
 }
 
-func (scene *Scene) Hit(x, y float32) *Node {
-	x -= 0.5
-	y -= 0.5
-	nodes := scene.Root.GetChildren()
+func hitChildren(parent *Node, x, y float32) *Node {
+	nodes := parent.GetChildren()
 	for i := len(nodes) - 1; i >= 0; i-- {
 		node := nodes[i]
 		if node.Hit(x, y) {
 			return node
 		}
+		child := hitChildren(node, x, y)
+		if child != nil {
+			return child
+		}
 	}
 	return nil
+}
+
+func (scene *Scene) Hit(x, y float32) *Node {
+	return hitChildren(scene.Root, x-0.5, y-0.5)
 }
 
 func (scene *Scene) Act(delta float32) {
