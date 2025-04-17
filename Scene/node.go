@@ -304,7 +304,7 @@ func (node *Node) Act(delta float32) {
 }
 
 func (node *Node) Hit(x, y float32) bool {
-	if !node.visible || node.width <= 0 || node.height <= 0 {
+	if !node.visible {
 		return false
 	}
 	localX, localY := node.SceneToLocalCoordinates(x, y)
