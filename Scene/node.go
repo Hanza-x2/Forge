@@ -304,21 +304,9 @@ func (node *Node) Act(delta float32) {
 }
 
 func (node *Node) Hit(x, y float32) bool {
-	if !node.visible || node.width <= 0 || node.height <= 0 {
+	if !node.visible {
 		return false
 	}
-
 	localX, localY := node.SceneToLocalCoordinates(x, y)
-	if localX < -node.originX || localX > node.width-node.originX ||
-		localY < -node.originY || localY > node.height-node.originY {
-		return false
-	}
-
-	if node.rotation != 0 {
-		invRot := mgl32.HomogRotate2D(-mgl32.DegToRad(node.rotation))
-		unrotated := transformCoordinate(localX+node.originX, localY+node.originY, invRot)
-		localX, localY = unrotated.X()-node.originX, unrotated.Y()-node.originY
-	}
-
-	return localX >= 0 && localX < node.width && localY >= 0 && localY < node.height
+	return localX >= 0 && localY >= 0 && localX < node.width && localY < node.height
 }
