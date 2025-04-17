@@ -3,7 +3,6 @@ package Scene
 import (
 	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics"
 	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics/Viewports"
-	"github.com/go-gl/mathgl/mgl32"
 )
 
 type Scene struct {
@@ -49,18 +48,12 @@ func (scene *Scene) Draw() {
 	scene.Batch.End()
 }
 
-func (scene *Scene) Resize(width, height int32) {
+func (scene *Scene) Resize(width, height float32) {
 	scene.Viewport.Update(width, height, false)
 }
 
 func (scene *Scene) Dispose() {
 	scene.Batch.Dispose()
-}
-
-func (scene *Scene) ScreenToSceneCoordinates(screenX, screenY float32) (float32, float32) {
-	camera := scene.Viewport.GetCamera()
-	output := camera.Unproject(mgl32.Vec2{screenX, screenY}, camera.Width, camera.Height)
-	return output.X(), output.Y()
 }
 
 func (scene *Scene) Hit(x, y float32) *Node {
