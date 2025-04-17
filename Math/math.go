@@ -28,10 +28,3 @@ func Mat3ToMat4(mat mgl32.Mat3) mgl32.Mat4 {
 		mat[6], mat[7], 0, mat[8],
 	}
 }
-
-func Vec2MulMat4(vec mgl32.Vec2, mat mgl32.Mat4) mgl32.Vec2 {
-	return mgl32.Vec2{
-		vec.X()*mat[0] + vec.Y()*mat[3] + mat[6],
-		vec.X()*mat[1] + vec.Y()*mat[4] + mat[7],
-	}
-}
