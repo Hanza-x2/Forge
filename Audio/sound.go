@@ -68,24 +68,20 @@ func NewSound(filePath string) (*Sound, error) {
 
 func (sound *Sound) Play(volume float32) {
 	sound.mu.Lock()
-	defer sound.mu.Unlock()
-
 	sound.Stop()
 
 	streamer := sound.buffer.Streamer(0, sound.buffer.Len())
-
 	sound.gain.Streamer = streamer
 	sound.SetVolume(volume)
-
 	sound.ctrl = &beep.Ctrl{Streamer: sound.gain}
+	sound.playing = true
+	sound.mu.Unlock()
 
 	speaker.Play(beep.Seq(sound.ctrl, beep.Callback(func() {
 		sound.mu.Lock()
 		sound.playing = false
 		sound.mu.Unlock()
 	})))
-
-	sound.playing = true
 }
 
 func (sound *Sound) Stop() {
