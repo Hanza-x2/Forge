@@ -2,7 +2,6 @@ package Scene
 
 import (
 	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics"
-	"github.com/go-gl/mathgl/mgl32"
 	"math"
 )
 
@@ -12,23 +11,22 @@ type Behavior interface {
 }
 
 type Node struct {
-	name      string
-	behavior  Behavior
-	x, y      float32
-	width     float32
-	height    float32
-	originX   float32
-	originY   float32
-	scaleX    float32
-	scaleY    float32
-	rotation  float32
-	visible   bool
-	parent    *Node
-	children  []*Node
-	userData  interface{}
-	scene     *Scene
-	transform mgl32.Mat3
-	dirty     bool
+	name     string
+	behavior Behavior
+	x, y     float32
+	width    float32
+	height   float32
+	originX  float32
+	originY  float32
+	scaleX   float32
+	scaleY   float32
+	rotation float32
+	visible  bool
+	parent   *Node
+	children []*Node
+	userData interface{}
+	scene    *Scene
+	dirty    bool
 }
 
 func NewNode() *Node {
@@ -197,40 +195,23 @@ func (node *Node) RemoveAllChildren() {
 	node.children = make([]*Node, 0)
 }
 
-func transformCoordinate(vecX, vecY float32, mat mgl32.Mat3) mgl32.Vec2 {
-	x := vecX*mat[0] + vecY*mat[3] + mat[6]
-	y := vecX*mat[1] + vecY*mat[4] + mat[7]
-	return mgl32.Vec2{x, y}
-}
-
 func (node *Node) GetWorldTransform() (x, y, scaleX, scaleY, rotation float32) {
-	// Start with local transform
 	x, y = node.x, node.y
 	scaleX, scaleY = node.scaleX, node.scaleY
 	rotation = node.rotation
-
-	// Apply parent transforms recursively
 	if parent := node.GetParent(); parent != nil {
-		parentX, parentY, parentScaleX, parentScaleY, parentRot := parent.GetWorldTransform()
-
-		rad := float64(parentRot * math.Pi / 180)
+		parentX, parentY, parentScaleX, parentScaleY, parentRotation := parent.GetWorldTransform()
+		rad := float64(parentRotation * math.Pi / 180)
 		cos := float32(math.Cos(rad))
 		sin := float32(math.Sin(rad))
-
-		// Calculate combined position
 		rotatedX := x*cos - y*sin
 		rotatedY := x*sin + y*cos
 		x = parentX + rotatedX*parentScaleX
 		y = parentY + rotatedY*parentScaleY
-
-		// Combine scale
 		scaleX *= parentScaleX
 		scaleY *= parentScaleY
-
-		// Combine rotation
-		rotation += parentRot
+		rotation += parentRotation
 	}
-
 	return x, y, scaleX, scaleY, rotation
 }
 
@@ -239,47 +220,13 @@ func (node *Node) GetWorldTransformEx() (x, y, originX, originY, width, height, 
 	return x, y, node.originX, node.originY, node.width, node.height, scaleX, scaleY, rotation
 }
 
-func (node *Node) LocalToSceneCoordinates(localX, localY float32) (float32, float32) {
-	transform := node.ComputeTransform()
-	vec := transformCoordinate(localX, localY, transform)
-	return vec.X(), vec.Y()
-}
-
-func (node *Node) SceneToLocalCoordinates(sceneX, sceneY float32) (float32, float32) {
-	transform := node.ComputeTransform().Inv()
-	vec := transformCoordinate(sceneX, sceneY, transform)
-	return vec.X(), vec.Y()
-}
-
-func (node *Node) ComputeTransform() mgl32.Mat3 {
-	if !node.dirty && node.parent == nil {
-		return node.transform
+func (node *Node) Act(delta float32) {
+	if node.behavior != nil {
+		node.behavior.Act(node, delta)
 	}
-
-	transform := mgl32.Ident3()
-	if node.parent != nil {
-		transform = node.parent.ComputeTransform()
+	for _, child := range node.children {
+		child.Act(delta)
 	}
-
-	transform = transform.Mul3(mgl32.Translate2D(node.x, node.y))
-	if node.rotation != 0 {
-		transform = transform.Mul3(mgl32.HomogRotate2D(mgl32.DegToRad(node.rotation)))
-	}
-
-	if node.scaleX != 1 || node.scaleY != 1 {
-		transform = transform.Mul3(mgl32.Scale2D(node.scaleX, node.scaleY))
-	}
-
-	if node.originX != 0 || node.originY != 0 {
-		transform = transform.Mul3(mgl32.Translate2D(-node.originX, -node.originY))
-	}
-
-	if node.parent == nil {
-		node.transform = transform
-		node.dirty = false
-	}
-
-	return transform
 }
 
 func (node *Node) Draw(batch *Graphics.Batch) {
@@ -294,19 +241,52 @@ func (node *Node) Draw(batch *Graphics.Batch) {
 	}
 }
 
-func (node *Node) Act(delta float32) {
-	if node.behavior != nil {
-		node.behavior.Act(node, delta)
+func (node *Node) LocalToParentCoordinates(localX, localY float32) (float32, float32) {
+	rotation := -node.rotation
+	if rotation == 0 {
+		if node.scaleX == 1 && node.scaleY == 1 {
+			localX += node.x
+			localY += node.y
+		} else {
+			localX = (localX-node.originX)*node.scaleX + node.originX + node.x
+			localY = (localY-node.originY)*node.scaleY + node.originY + node.y
+		}
+	} else {
+		rad := float64(rotation * math.Pi / 180)
+		cos := float32(math.Cos(rad))
+		sin := float32(math.Sin(rad))
+		toX := (localX - node.originX) * node.scaleX
+		toY := (localY - node.originY) * node.scaleY
+		localX = (toX*cos + toY*sin) + node.originX + node.x
+		localY = (toX*-sin + toY*cos) + node.originY + node.y
 	}
-	for _, child := range node.children {
-		child.Act(delta)
+	return localX, localY
+}
+
+func (node *Node) ParentToLocalCoordinates(parentX, parentY float32) (float32, float32) {
+	if node.rotation == 0 {
+		if node.scaleX == 1 && node.scaleY == 1 {
+			parentX -= node.x
+			parentY -= node.y
+		} else {
+			parentX = (parentX-node.x-node.originX)/node.scaleX + node.originX
+			parentY = (parentY-node.y-node.originY)/node.scaleY + node.originY
+		}
+	} else {
+		rad := float64(node.rotation * math.Pi / 180)
+		cos := float32(math.Cos(rad))
+		sin := float32(math.Sin(rad))
+		toX := parentX - node.x - node.originX
+		toY := parentY - node.y - node.originY
+		parentX = (toX*cos+toY*sin)/node.scaleX + node.originX
+		parentY = (toX*-sin+toY*cos)/node.scaleY + node.originY
 	}
+	return parentX, parentY
 }
 
 func (node *Node) Hit(x, y float32) bool {
 	if !node.visible {
 		return false
 	}
-	localX, localY := node.SceneToLocalCoordinates(x, y)
-	return localX >= 0 && localY >= 0 && localX < node.width && localY < node.height
+	return x >= 0 && y >= 0 && x < node.width && y < node.height
 }

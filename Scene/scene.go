@@ -38,10 +38,10 @@ func hitChildren(parent *Node, x, y float32) *Node {
 	nodes := parent.GetChildren()
 	for i := len(nodes) - 1; i >= 0; i-- {
 		node := nodes[i]
-		if node.Hit(x, y) {
+		if node.Hit(node.ParentToLocalCoordinates(x, y)) {
 			return node
 		}
-		if child := hitChildren(node, x-0.5, y-0.5); child != nil {
+		if child := hitChildren(node, x, y); child != nil {
 			return child
 		}
 	}
@@ -49,7 +49,7 @@ func hitChildren(parent *Node, x, y float32) *Node {
 }
 
 func (scene *Scene) Hit(x, y float32) *Node {
-	return hitChildren(scene.Root, x-0.5, y-0.5)
+	return hitChildren(scene.Root, x, y)
 }
 
 func (scene *Scene) Act(delta float32) {
