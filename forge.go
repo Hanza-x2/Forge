@@ -23,14 +23,14 @@ type WindowConfiguration struct {
 type Application interface {
 	Create(driver *Driver)
 	Render(driver *Driver, delta float32)
-	Resize(driver *Driver, width, height int32)
+	Resize(driver *Driver, width, height float32)
 	Destroy(driver *Driver)
 }
 
 type Driver struct {
 	Input               *InputHandler
-	Width               int32
-	Height              int32
+	Width               float32
+	Height              float32
 	App                 Application
 	configuration       WindowConfiguration
 	running             bool
@@ -219,8 +219,8 @@ func (driver *Driver) Start() {
 	}
 
 	window.SetFramebufferSizeCallback(func(w *glfw.Window, width, height int) {
-		castWidth := int32(width)
-		castHeight := int32(height)
+		castWidth := float32(width)
+		castHeight := float32(height)
 		driver.Width = castWidth
 		driver.Height = castHeight
 		driver.App.Resize(driver, castWidth, castHeight)
@@ -232,8 +232,8 @@ func (driver *Driver) Start() {
 	}
 
 	width, height := window.GetSize()
-	castWidth := int32(width)
-	castHeight := int32(height)
+	castWidth := float32(width)
+	castHeight := float32(height)
 	driver.Width = castWidth
 	driver.Height = castHeight
 
