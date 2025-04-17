@@ -1,34 +1,15 @@
 package Forge
 
 import (
+	"forgejo.max7.fun/m.alkhatib/GoForge/Input"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"log"
 	"time"
 )
 
-type WindowConfiguration struct {
-	Title                   string
-	Width                   int32
-	Height                  int32
-	Resizable               bool
-	Decorated               bool
-	OpenGLVersionMajor      int
-	OpenGLVersionMinor      int
-	OpenGLProfile           int
-	OpenGLForwardCompatible bool
-	TargetFPS               int32
-}
-
-type Application interface {
-	Create(driver *Driver)
-	Render(driver *Driver, delta float32)
-	Resize(driver *Driver, width, height float32)
-	Destroy(driver *Driver)
-}
-
 type Driver struct {
-	Input               *InputHandler
+	Input               *Input.Handler
 	Width               float32
 	Height              float32
 	App                 Application
@@ -39,116 +20,6 @@ type Driver struct {
 	frames              int32
 	startTime           time.Time
 	targetFrameDuration time.Duration
-}
-type KeyCallback func(key glfw.Key, action glfw.Action)
-type MouseButtonCallback func(button glfw.MouseButton, action glfw.Action)
-type MouseMoveCallback func(x, y float32)
-type MouseScrollCallback func(x, y float32)
-
-type InputHandler struct {
-	keys         [glfw.KeyLast + 1]bool
-	mouseButtons [glfw.MouseButtonLast + 1]bool
-	mouseX       float32
-	mouseY       float32
-
-	keyCallback         KeyCallback
-	mouseButtonCallback MouseButtonCallback
-	mouseMoveCallback   MouseMoveCallback
-	mouseScrollCallback MouseScrollCallback
-}
-
-func (handler *InputHandler) Install(window *glfw.Window) {
-	window.SetKeyCallback(handler.keyCallbackWrapper)
-	window.SetMouseButtonCallback(handler.mouseButtonCallbackWrapper)
-	window.SetCursorPosCallback(handler.mouseMoveCallbackWrapper)
-	window.SetScrollCallback(handler.mouseScrollCallbackWrapper)
-}
-
-func (handler *InputHandler) SetKeyCallback(callback KeyCallback) {
-	handler.keyCallback = callback
-}
-
-func (handler *InputHandler) SetMouseButtonCallback(callback MouseButtonCallback) {
-	handler.mouseButtonCallback = callback
-}
-
-func (handler *InputHandler) SetMouseMoveCallback(callback MouseMoveCallback) {
-	handler.mouseMoveCallback = callback
-}
-
-func (handler *InputHandler) SetMouseScrollCallback(callback MouseScrollCallback) {
-	handler.mouseScrollCallback = callback
-}
-
-func (handler *InputHandler) IsKeyPressed(key glfw.Key) bool {
-	if key < 0 || key > glfw.KeyLast {
-		return false
-	}
-	return handler.keys[key]
-}
-
-func (handler *InputHandler) IsMouseButtonPressed(button glfw.MouseButton) bool {
-	if button < 0 || button > glfw.MouseButtonLast {
-		return false
-	}
-	return handler.mouseButtons[button]
-}
-
-func (handler *InputHandler) GetMousePosition() (float32, float32) {
-	return handler.mouseX, handler.mouseY
-}
-
-func (handler *InputHandler) GetMouseX() float32 {
-	return handler.mouseX
-}
-
-func (handler *InputHandler) GetMouseY() float32 {
-	return handler.mouseY
-}
-
-func (handler *InputHandler) keyCallbackWrapper(_ *glfw.Window, key glfw.Key, _ int, action glfw.Action, _ glfw.ModifierKey) {
-	if key >= 0 && int(key) < len(handler.keys) {
-		if action == glfw.Press {
-			handler.keys[key] = true
-		} else if action == glfw.Release {
-			handler.keys[key] = false
-		}
-	}
-
-	if handler.keyCallback != nil {
-		handler.keyCallback(key, action)
-	}
-}
-
-func (handler *InputHandler) mouseButtonCallbackWrapper(_ *glfw.Window, button glfw.MouseButton, action glfw.Action, _ glfw.ModifierKey) {
-	if button >= 0 && int(button) < len(handler.mouseButtons) {
-		if action == glfw.Press {
-			handler.mouseButtons[button] = true
-		} else if action == glfw.Release {
-			handler.mouseButtons[button] = false
-		}
-	}
-
-	if handler.mouseButtonCallback != nil {
-		handler.mouseButtonCallback(button, action)
-	}
-}
-
-func (handler *InputHandler) mouseMoveCallbackWrapper(_ *glfw.Window, x, y float64) {
-	castX := float32(x)
-	castY := float32(y)
-	handler.mouseX = castX
-	handler.mouseY = castY
-
-	if handler.mouseMoveCallback != nil {
-		handler.mouseMoveCallback(castX, castY)
-	}
-}
-
-func (handler *InputHandler) mouseScrollCallbackWrapper(_ *glfw.Window, x, y float64) {
-	if handler.mouseScrollCallback != nil {
-		handler.mouseScrollCallback(float32(x), -float32(y))
-	}
 }
 
 func glfwBool(value bool) int {
@@ -187,7 +58,7 @@ func RunSafe(application Application, configuration WindowConfiguration) error {
 func CreateDriver(application Application, configuration WindowConfiguration) *Driver {
 	return &Driver{
 		App:                 application,
-		Input:               &InputHandler{},
+		Input:               &Input.Handler{},
 		configuration:       configuration,
 		targetFrameDuration: time.Second / time.Duration(configuration.TargetFPS),
 		startTime:           time.Now(),
