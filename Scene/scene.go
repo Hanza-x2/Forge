@@ -50,7 +50,7 @@ func hitChildren(parent *Node, x, y float32) *Node {
 }
 
 func (scene *Scene) Hit(x, y float32) *Node {
-	return hitChildren(scene.Root, x-0.5, y-0.5)
+	return hitChildren(scene.Root, x, y)
 }
 
 func (scene *Scene) Act(delta float32) {
