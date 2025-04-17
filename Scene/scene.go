@@ -3,7 +3,6 @@ package Scene
 import (
 	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics"
 	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics/Viewports"
-	"github.com/go-gl/mathgl/mgl32"
 )
 
 type Scene struct {
@@ -65,42 +64,13 @@ func (scene *Scene) Draw() {
 	scene.Batch.End()
 }
 
-func drawNodeDebug(node *Node, batch *Graphics.Batch) {
-	if !node.visible || node.width <= 0 || node.height <= 0 {
-		return
-	}
-
-	// Get all 4 corners in local space
-	corners := []mgl32.Vec2{
-		{0, 0},
-		{node.width, 0},
-		{node.width, node.height},
-		{0, node.height},
-	}
-
-	// Transform to world space
-	transform := node.ComputeTransform()
-	for i := range corners {
-		corners[i] = transformCoordinate(corners[i].X()-node.originX, corners[i].Y()-node.originY, transform)
-	}
-
-	// Draw transformed rectangle
-	for i := 0; i < 4; i++ {
-		j := (i + 1) % 4
-		batch.Line(
-			corners[i].X(), corners[i].Y(),
-			corners[j].X(), corners[j].Y(),
-			2, Graphics.RED,
-		)
-	}
-
-	// Draw origin point
-	origin := transformCoordinate(-node.originX, -node.originY, transform)
-	batch.FillRect(origin.X()-0.5, origin.Y()-0.5, 1, 1, Graphics.GREEN)
-
-	// Draw children
-	for _, child := range node.children {
-		drawNodeDebug(child, batch)
+func drawDebugChildren(parent *Node, batch *Graphics.Batch) {
+	nodes := parent.GetChildren()
+	for i := len(nodes) - 1; i >= 0; i-- {
+		node := nodes[i]
+		x, y, originX, originY, width, height, scaleX, scaleY, rotation := node.GetWorldTransformEx()
+		batch.LineRectEx(x, y, originX, originY, width, height, scaleX, scaleY, rotation, Graphics.YELLOW, 1)
+		drawDebugChildren(node, batch)
 	}
 }
 
@@ -108,7 +78,7 @@ func (scene *Scene) DrawDebug() {
 	scene.Viewport.Apply(false)
 	scene.Batch.SetProjection(scene.Viewport.GetCamera().Matrix)
 	scene.Batch.Begin()
-	drawNodeDebug(scene.Root, scene.Batch)
+	drawDebugChildren(scene.Root, scene.Batch)
 	scene.Batch.End()
 }
 
