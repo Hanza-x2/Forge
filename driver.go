@@ -1,7 +1,6 @@
 package Forge
 
 import (
-	"forgejo.max7.fun/m.alkhatib/GoForge/Audio"
 	"forgejo.max7.fun/m.alkhatib/GoForge/Input"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
@@ -10,7 +9,6 @@ import (
 )
 
 type Driver struct {
-	Audio               *Audio.Engine
 	Input               *Input.Handler
 	Width               float32
 	Height              float32
@@ -46,14 +44,9 @@ func CreateDriver(application Application, configuration DesktopConfiguration) *
 	if application == nil {
 		panic("Application may not be nil")
 	}
-	audio, err := Audio.NewEngine()
-	if err != nil {
-		panic(err)
-	}
 	return &Driver{
 		App:                 application,
 		Input:               &Input.Handler{},
-		Audio:               audio,
 		configuration:       configuration,
 		targetFrameDuration: time.Second / time.Duration(configuration.TargetFPS),
 		startTime:           time.Now(),
@@ -133,7 +126,6 @@ func (driver *Driver) Start() {
 	}
 
 	driver.App.Destroy(driver)
-	driver.Audio.Destroy()
 	glfw.Terminate()
 }
 
