@@ -38,10 +38,11 @@ func hitChildren(parent *Node, x, y float32) *Node {
 	nodes := parent.GetChildren()
 	for i := len(nodes) - 1; i >= 0; i-- {
 		node := nodes[i]
-		if node.Hit(node.ParentToLocalCoordinates(x, y)) {
+		localX, localY := node.ParentToLocalCoordinates(x, y)
+		if node.Hit(localX, localY) {
 			return node
 		}
-		if child := hitChildren(node, x, y); child != nil {
+		if child := hitChildren(node, localX, localY); child != nil {
 			return child
 		}
 	}
