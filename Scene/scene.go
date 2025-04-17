@@ -70,7 +70,7 @@ func drawDebugChildren(parent *Node, batch *Graphics.Batch) {
 	for i := len(nodes) - 1; i >= 0; i-- {
 		node := nodes[i]
 		x, y, originX, originY, width, height, scaleX, scaleY, rotation := node.GetWorldTransformEx()
-		batch.LineRectEx(x, y, originX, originY, width, height, scaleX, scaleY, rotation, Graphics.YELLOW, 1)
+		batch.LineRectEx(x, y, originX, originY, width, height, scaleX, scaleY, rotation, Graphics.ColorYellow, 1)
 		drawDebugChildren(node, batch)
 	}
 }

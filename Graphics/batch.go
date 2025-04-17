@@ -25,7 +25,7 @@ type Batch struct {
 	vao, vbo, ebo uint32
 	vertices      []float32
 	indices       []uint32
-	color         float32
+	color         Color
 	spaceFactor   float32
 	vertexCount   int
 	pixel         *TextureRegion
@@ -104,7 +104,7 @@ func NewBatch(driver *Forge.Driver) *Batch {
 		shader:   shader,
 		pixel:    pixel,
 	}
-	batch.SetColor(WHITE)
+	batch.SetColor(ColorWhite)
 
 	for i, j := 0, 0; i < indicesSize; i, j = i+6, j+4 {
 		batch.indices[i] = uint32(j)
@@ -147,7 +147,7 @@ func NewBatch(driver *Forge.Driver) *Batch {
 	return batch
 }
 
-func (batch *Batch) SetColor(color float32) {
+func (batch *Batch) SetColor(color Color) {
 	batch.color = color
 }
 
@@ -159,7 +159,7 @@ func (batch *Batch) SetColorHEX(hex uint32) {
 	batch.SetColor(ColorFromHEX(hex))
 }
 
-func (batch *Batch) GetColor() float32 {
+func (batch *Batch) GetColor() Color {
 	return batch.color
 }
 
@@ -211,7 +211,7 @@ func (batch *Batch) SetProjection(projection mgl32.Mat4) {
 		batch.Flush()
 	}
 	batch.projection = projection
-	batch.spaceFactor = 2 / (projection[0] * float32(batch.driver.Width))
+	batch.spaceFactor = 2 / (projection[0] * batch.driver.Width)
 }
 
 func (batch *Batch) PushTransform(transform mgl32.Mat3) {
@@ -236,10 +236,10 @@ func (batch *Batch) valid() bool {
 
 func (batch *Batch) Push(
 	texture *Texture,
-	x1, y1, c1, u1, v1,
-	x2, y2, c2, u2, v2,
-	x3, y3, c3, u3, v3,
-	x4, y4, c4, u4, v4 float32,
+	x1, y1 float32, c1 Color, u1, v1 float32,
+	x2, y2 float32, c2 Color, u2, v2 float32,
+	x3, y3 float32, c3 Color, u3, v3 float32,
+	x4, y4 float32, c4 Color, u4, v4 float32,
 ) {
 	if !batch.valid() {
 		return
@@ -255,21 +255,21 @@ func (batch *Batch) Push(
 	}
 
 	vertices := []float32{
-		x1, y1, c1, u1, v1,
-		x2, y2, c2, u2, v2,
-		x3, y3, c3, u3, v3,
-		x4, y4, c4, u4, v4,
+		x1, y1, float32(c1), u1, v1,
+		x2, y2, float32(c2), u2, v2,
+		x3, y3, float32(c3), u3, v3,
+		x4, y4, float32(c4), u4, v4,
 	}
 
 	copy(batch.vertices[batch.vertexCount*VertexSize:], vertices)
 	batch.vertexCount += 4
 }
 
-func (batch *Batch) Line(x1, y1, x2, y2, color, stroke float32) {
+func (batch *Batch) Line(x1, y1, x2, y2 float32, color Color, stroke float32) {
 	batch.LineEx(x1, y1, color, x2, y2, color, stroke)
 }
 
-func (batch *Batch) LineEx(x1, y1, c1, x2, y2, c2, stroke float32) {
+func (batch *Batch) LineEx(x1, y1 float32, c1 Color, x2, y2 float32, c2 Color, stroke float32) {
 	if !batch.valid() {
 		return
 	}
@@ -290,14 +290,14 @@ func (batch *Batch) LineEx(x1, y1, c1, x2, y2, c2, stroke float32) {
 	)
 }
 
-func (batch *Batch) LineRect(x, y, width, height, color, stroke float32) {
+func (batch *Batch) LineRect(x, y, width, height float32, color Color, stroke float32) {
 	batch.LineEx(x, y, color, x+width, y, color, stroke)
 	batch.LineEx(x+width, y, color, x+width, y+height, color, stroke)
 	batch.LineEx(x+width, y+height, color, x, y+height, color, stroke)
 	batch.LineEx(x, y+height, color, x, y, color, stroke)
 }
 
-func (batch *Batch) LineRectEx(x, y, originX, originY, width, height, scaleX, scaleY, rotation, color, stroke float32) {
+func (batch *Batch) LineRectEx(x, y, originX, originY, width, height, scaleX, scaleY, rotation float32, color Color, stroke float32) {
 	if !batch.valid() {
 		return
 	}
@@ -330,11 +330,16 @@ func (batch *Batch) LineRectEx(x, y, originX, originY, width, height, scaleX, sc
 	batch.LineEx(x4, y4, color, x1, y1, color, stroke)
 }
 
-func (batch *Batch) FillQuad(x1, y1, x2, y2, x3, y3, x4, y4, color float32) {
+func (batch *Batch) FillQuad(x1, y1, x2, y2, x3, y3, x4, y4 float32, color Color) {
 	batch.FillQuadEx(x1, y1, color, x2, y2, color, x3, y3, color, x4, y4, color)
 }
 
-func (batch *Batch) FillQuadEx(x1, y1, c1, x2, y2, c2, x3, y3, c3, x4, y4, c4 float32) {
+func (batch *Batch) FillQuadEx(
+	x1, y1 float32, c1 Color,
+	x2, y2 float32, c2 Color,
+	x3, y3 float32, c3 Color,
+	x4, y4 float32, c4 Color,
+) {
 	batch.Push(batch.pixel.Texture,
 		x1, y1, c1, 0, 1,
 		x2, y2, c2, 0, 0,
@@ -343,11 +348,11 @@ func (batch *Batch) FillQuadEx(x1, y1, c1, x2, y2, c2, x3, y3, c3, x4, y4, c4 fl
 	)
 }
 
-func (batch *Batch) FillRect(x, y, width, height, color float32) {
+func (batch *Batch) FillRect(x, y, width, height float32, color Color) {
 	batch.FillQuad(x, y, x+width, y, x+width, y+height, x, y+height, color)
 }
 
-func (batch *Batch) FillRectEx(x, y, width, height, c1, c2, c3, c4 float32) {
+func (batch *Batch) FillRectEx(x, y, width, height float32, c1, c2, c3, c4 Color) {
 	batch.FillQuadEx(x, y, c1, x+width, y, c2, x+width, y+height, c3, x, y+height, c4)
 }
 
