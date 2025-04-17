@@ -13,7 +13,7 @@ type Driver struct {
 	Width               float32
 	Height              float32
 	App                 Application
-	configuration       WindowConfiguration
+	configuration       DesktopConfiguration
 	running             bool
 	lastFrame           time.Time
 	fps                 int32
@@ -29,22 +29,7 @@ func glfwBool(value bool) int {
 	return glfw.False
 }
 
-func DefaultConfig() WindowConfiguration {
-	return WindowConfiguration{
-		Title:                   "Leaf",
-		Width:                   800,
-		Height:                  600,
-		Resizable:               true,
-		Decorated:               true,
-		OpenGLVersionMajor:      3,
-		OpenGLVersionMinor:      3,
-		OpenGLProfile:           glfw.OpenGLCoreProfile,
-		OpenGLForwardCompatible: true,
-		TargetFPS:               60,
-	}
-}
-
-func RunSafe(application Application, configuration WindowConfiguration) error {
+func RunSafe(application Application, configuration DesktopConfiguration) error {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("Recovered from panic: %v", r)
@@ -55,7 +40,7 @@ func RunSafe(application Application, configuration WindowConfiguration) error {
 	return nil
 }
 
-func CreateDriver(application Application, configuration WindowConfiguration) *Driver {
+func CreateDriver(application Application, configuration DesktopConfiguration) *Driver {
 	return &Driver{
 		App:                 application,
 		Input:               &Input.Handler{},
