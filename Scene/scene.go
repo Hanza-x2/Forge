@@ -36,6 +36,19 @@ func (scene *Scene) Clear() {
 	scene.Root.RemoveAllChildren()
 }
 
+func (scene *Scene) Hit(x, y float32) *Node {
+	x -= 0.5
+	y -= 0.5
+	nodes := scene.Root.GetChildren()
+	for i := len(nodes) - 1; i >= 0; i-- {
+		node := nodes[i]
+		if node.Hit(x, y) {
+			return node
+		}
+	}
+	return nil
+}
+
 func (scene *Scene) Act(delta float32) {
 	scene.Root.Act(delta)
 }
@@ -54,15 +67,4 @@ func (scene *Scene) Resize(width, height float32) {
 
 func (scene *Scene) Dispose() {
 	scene.Batch.Dispose()
-}
-
-func (scene *Scene) Hit(x, y float32) *Node {
-	nodes := scene.Root.GetChildren()
-	for i := len(nodes) - 1; i >= 0; i-- {
-		node := nodes[i]
-		if node.Hit(x, y) {
-			return node
-		}
-	}
-	return nil
 }
