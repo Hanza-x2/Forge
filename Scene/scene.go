@@ -6,10 +6,9 @@ import (
 )
 
 type Scene struct {
-	Root      *Node
-	Batch     *Graphics.Batch
-	Viewport  Viewports.Viewport
-	sortDirty bool
+	Root     *Node
+	Batch    *Graphics.Batch
+	Viewport Viewports.Viewport
 }
 
 func NewScene(viewport Viewports.Viewport, batch *Graphics.Batch) *Scene {
@@ -25,7 +24,6 @@ func NewScene(viewport Viewports.Viewport, batch *Graphics.Batch) *Scene {
 
 func (scene *Scene) AddNode(node *Node) {
 	scene.Root.AddChild(node)
-	scene.sortDirty = true
 }
 
 func (scene *Scene) RemoveNode(node *Node) {
