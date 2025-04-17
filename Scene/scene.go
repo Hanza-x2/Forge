@@ -61,6 +61,21 @@ func (scene *Scene) Draw() {
 	scene.Batch.End()
 }
 
+func (scene *Scene) DrawDebug() {
+	scene.Viewport.Apply(false)
+	scene.Batch.SetProjection(scene.Viewport.GetCamera().Matrix)
+	scene.Batch.Begin()
+	scene.Batch.SetColor(Graphics.YELLOW)
+	nodes := scene.Root.GetChildren()
+	for i := len(nodes) - 1; i >= 0; i-- {
+		node := nodes[i]
+		x, y, originX, originY, width, height, scaleX, scaleY, rotation := node.GetWorldTransformEx()
+		scene.Batch.LineRectEx(x, y, originX, originY, width, height, scaleX, scaleY, rotation, 1)
+	}
+	scene.Batch.SetColor(Graphics.WHITE)
+	scene.Batch.End()
+}
+
 func (scene *Scene) Resize(width, height float32) {
 	scene.Viewport.Update(width, height, false)
 }
