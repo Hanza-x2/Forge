@@ -7,6 +7,23 @@ type Rectangle struct {
 	Height float32
 }
 
+func (rectangle *Rectangle) Set(x, y, width, height float32) {
+	rectangle.X = x
+	rectangle.Y = y
+	rectangle.Width = width
+	rectangle.Height = height
+}
+
+func (rectangle *Rectangle) SetPosition(x, y float32) {
+	rectangle.X = x
+	rectangle.Y = y
+}
+
+func (rectangle *Rectangle) SetSize(width, height float32) {
+	rectangle.Width = width
+	rectangle.Height = height
+}
+
 func (rectangle *Rectangle) Contains(x, y float32) bool {
 	return x >= rectangle.X && x <= rectangle.X+rectangle.Width &&
 		y >= rectangle.Y && y <= rectangle.Y+rectangle.Height
