@@ -6,12 +6,12 @@ import (
 )
 
 type FrameBuffer struct {
-	width, height int
+	width, height int32
 	fbo           uint32
 	colorTexture  Texture
 }
 
-func NewFrameBuffer(width, height int) (*FrameBuffer, error) {
+func NewFrameBuffer(width, height int32) (*FrameBuffer, error) {
 	frameBuffer := &FrameBuffer{
 		width:  width,
 		height: height,
@@ -23,7 +23,7 @@ func NewFrameBuffer(width, height int) (*FrameBuffer, error) {
 	var textureID uint32
 	gl.GenTextures(1, &textureID)
 	gl.BindTexture(gl.TEXTURE_2D, textureID)
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(width), int32(height), 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
 	gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, textureID, 0)

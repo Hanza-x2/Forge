@@ -15,8 +15,8 @@ import (
 
 type Texture struct {
 	ID     uint32
-	Width  int
-	Height int
+	Width  int32
+	Height int32
 }
 
 func NewTexture(filePath string) (*Texture, error) {
@@ -66,8 +66,8 @@ func NewTexture(filePath string) (*Texture, error) {
 
 	return &Texture{
 		ID:     textureID,
-		Width:  rgba.Rect.Size().X,
-		Height: rgba.Rect.Size().Y,
+		Width:  int32(rgba.Rect.Size().X),
+		Height: int32(rgba.Rect.Size().Y),
 	}, nil
 }
 
