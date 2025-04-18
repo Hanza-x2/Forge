@@ -21,7 +21,7 @@ func (r *TextureRegion) SetTexture(texture *Texture) {
 	r.SetBounds(0, 0, texture.Width, texture.Height)
 }
 
-func (r *TextureRegion) SetBounds(x, y, width, height int) {
+func (r *TextureRegion) SetBounds(x, y, width, height int32) {
 	invTexWidth := 1.0 / float32(r.Texture.Width)
 	invTexHeight := 1.0 / float32(r.Texture.Height)
 
