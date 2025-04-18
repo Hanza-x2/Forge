@@ -46,7 +46,7 @@ func NewFrameBuffer(width, height int32) (*FrameBuffer, error) {
 
 func (frameBuffer *FrameBuffer) Bind() {
 	gl.BindFramebuffer(gl.FRAMEBUFFER, frameBuffer.fbo)
-	gl.Viewport(0, 0, int32(frameBuffer.width), int32(frameBuffer.height))
+	gl.Viewport(0, 0, frameBuffer.width, frameBuffer.height)
 }
 
 func (frameBuffer *FrameBuffer) Unbind() {
