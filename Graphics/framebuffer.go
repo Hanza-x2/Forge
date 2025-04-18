@@ -53,8 +53,8 @@ func (frameBuffer *FrameBuffer) Unbind() {
 	gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 }
 
-func (frameBuffer *FrameBuffer) GetColorTexture() Texture {
-	return frameBuffer.colorTexture
+func (frameBuffer *FrameBuffer) GetColorTexture() *Texture {
+	return &frameBuffer.colorTexture
 }
 
 func (frameBuffer *FrameBuffer) Dispose() {
