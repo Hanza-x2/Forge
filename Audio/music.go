@@ -2,7 +2,6 @@ package Audio
 
 import (
 	"errors"
-	"math"
 	"os"
 	"strings"
 	"time"
@@ -19,7 +18,7 @@ type Music struct {
 	streamer beep.StreamSeekCloser
 	format   beep.Format
 	ctrl     *beep.Ctrl
-	gain     *effects.Gain
+	volume   *effects.Volume
 	loop     bool
 	playing  bool
 }
@@ -47,7 +46,7 @@ func NewMusic(filePath string) (*Music, error) {
 		return nil, err
 	}
 
-	if speakerInitialized == false {
+	if !speakerInitialized {
 		err := speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/20))
 		if err != nil {
 			_ = streamer.Close()
@@ -56,11 +55,18 @@ func NewMusic(filePath string) (*Music, error) {
 		speakerInitialized = true
 	}
 
+	vol := &effects.Volume{
+		Streamer: nil,
+		Base:     2,
+		Volume:   0,
+		Silent:   false,
+	}
+
 	return &Music{
 		filePath: filePath,
 		streamer: streamer,
 		format:   format,
-		gain:     &effects.Gain{Gain: 0},
+		volume:   vol,
 		playing:  false,
 	}, nil
 }
@@ -69,20 +75,20 @@ func (music *Music) Play() {
 	if music.playing {
 		return
 	}
-	err := music.streamer.Seek(0)
-	if err != nil {
+
+	if err := music.streamer.Seek(0); err != nil {
 		return
 	}
 
 	var baseStreamer beep.Streamer
 	if music.loop {
-		baseStreamer = beep.Loop(-1, music.streamer)
+		baseStreamer, _ = beep.Loop2(music.streamer)
 	} else {
 		baseStreamer = music.streamer
 	}
 
-	music.gain.Streamer = baseStreamer
-	music.ctrl = &beep.Ctrl{Streamer: music.gain}
+	music.volume.Streamer = baseStreamer
+	music.ctrl = &beep.Ctrl{Streamer: music.volume}
 
 	go func() {
 		speaker.Play(beep.Seq(music.ctrl, beep.Callback(func() {
@@ -103,11 +109,7 @@ func (music *Music) Stop() {
 }
 
 func (music *Music) SetVolume(volume float32) {
-	if volume <= 0 {
-		music.gain.Gain = -100
-	} else {
-		music.gain.Gain = 10 * (math.Pow(float64(volume), 3) - 1)
-	}
+	music.volume.Volume = float64(-5 + (5 * volume))
 }
 
 func (music *Music) SetLooping(loop bool) {
