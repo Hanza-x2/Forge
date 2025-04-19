@@ -45,8 +45,9 @@ func NewSound(filePath string) (*Sound, error) {
 	}
 
 	if speakerInitialized == false {
-		err := speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+		err := speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/20))
 		if err != nil {
+			_ = streamer.Close()
 			return nil, err
 		}
 		speakerInitialized = true
@@ -54,7 +55,7 @@ func NewSound(filePath string) (*Sound, error) {
 
 	buffer := beep.NewBuffer(format)
 	buffer.Append(streamer)
-	streamer.Close()
+	_ = streamer.Close()
 
 	return &Sound{
 		buffer:  buffer,
@@ -93,7 +94,7 @@ func (sound *Sound) SetVolume(volume float32) {
 	if volume <= 0 {
 		sound.gain.Gain = -100
 	} else {
-		sound.gain.Gain = 20 * math.Log10(float64(volume))
+		sound.gain.Gain = 10 * (math.Pow(float64(volume), 3) - 1)
 	}
 }
 

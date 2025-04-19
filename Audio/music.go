@@ -39,18 +39,18 @@ func NewMusic(filePath string) (*Music, error) {
 	case strings.HasSuffix(strings.ToLower(filePath), ".mp3"):
 		streamer, format, err = mp3.Decode(file)
 	default:
-		file.Close()
+		_ = file.Close()
 		return nil, errors.New("unsupported audio format")
 	}
 	if err != nil {
-		file.Close()
+		_ = file.Close()
 		return nil, err
 	}
 
 	if speakerInitialized == false {
-		err := speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+		err := speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/20))
 		if err != nil {
-			streamer.Close()
+			_ = streamer.Close()
 			return nil, err
 		}
 		speakerInitialized = true
@@ -106,7 +106,7 @@ func (music *Music) SetVolume(volume float32) {
 	if volume <= 0 {
 		music.gain.Gain = -100
 	} else {
-		music.gain.Gain = 20 * float64(math.Log10(float64(volume)))
+		music.gain.Gain = 10 * (math.Pow(float64(volume), 3) - 1)
 	}
 }
 
@@ -120,6 +120,6 @@ func (music *Music) IsPlaying() bool {
 
 func (music *Music) Close() {
 	if music.streamer != nil {
-		music.streamer.Close()
+		_ = music.streamer.Close()
 	}
 }
