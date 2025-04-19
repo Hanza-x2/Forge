@@ -2,7 +2,6 @@ package Audio
 
 import (
 	"errors"
-	"math"
 	"os"
 	"strings"
 	"time"
@@ -18,7 +17,7 @@ type Sound struct {
 	buffer  *beep.Buffer
 	format  beep.Format
 	ctrl    *beep.Ctrl
-	gain    *effects.Gain
+	volume  *effects.Volume
 	playing bool
 }
 
@@ -44,7 +43,7 @@ func NewSound(filePath string) (*Sound, error) {
 		return nil, err
 	}
 
-	if speakerInitialized == false {
+	if !speakerInitialized {
 		err := speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/20))
 		if err != nil {
 			_ = streamer.Close()
@@ -57,10 +56,17 @@ func NewSound(filePath string) (*Sound, error) {
 	buffer.Append(streamer)
 	_ = streamer.Close()
 
+	vol := &effects.Volume{
+		Streamer: nil,
+		Base:     2,
+		Volume:   0,
+		Silent:   false,
+	}
+
 	return &Sound{
 		buffer:  buffer,
 		format:  format,
-		gain:    &effects.Gain{Gain: 0},
+		volume:  vol,
 		playing: false,
 	}, nil
 }
@@ -69,16 +75,14 @@ func (sound *Sound) Play(volume float32) {
 	sound.Stop()
 
 	streamer := sound.buffer.Streamer(0, sound.buffer.Len())
-	sound.gain.Streamer = streamer
+	sound.volume.Streamer = streamer
 	sound.SetVolume(volume)
-	sound.ctrl = &beep.Ctrl{Streamer: sound.gain}
+	sound.ctrl = &beep.Ctrl{Streamer: sound.volume}
 	sound.playing = true
 
-	go func() {
-		speaker.Play(beep.Seq(sound.ctrl, beep.Callback(func() {
-			sound.playing = false
-		})))
-	}()
+	speaker.Play(beep.Seq(sound.ctrl, beep.Callback(func() {
+		sound.playing = false
+	})))
 }
 
 func (sound *Sound) Stop() {
@@ -91,11 +95,7 @@ func (sound *Sound) Stop() {
 }
 
 func (sound *Sound) SetVolume(volume float32) {
-	if volume <= 0 {
-		sound.gain.Gain = -100
-	} else {
-		sound.gain.Gain = 10 * (math.Pow(float64(volume), 3) - 1)
-	}
+	sound.volume.Volume = float64(-5 + (5 * volume))
 }
 
 func (sound *Sound) IsPlaying() bool {
