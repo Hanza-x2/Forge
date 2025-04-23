@@ -1,7 +1,7 @@
 package Scene
 
 import (
-	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics"
+	"github.com/ForgeLeaf/Forge/Graphics"
 	"math"
 )
 

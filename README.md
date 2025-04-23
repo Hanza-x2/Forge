@@ -14,7 +14,7 @@ force you to use a specific architecture or design pattern.
 While Forge is still in its early stages, it already has a number 
 of features, such as:
 - Simple and intuitive APIs
-- Cross-platform desktop support (Windows, Linux, MacOS)
+- Cross-platform desktop support (Windows, Linux, macOS)
 - Advanced 2D rendering using OpenGL (with a simple Batch implementation)
 - Advanced input handling methods
 - Basic audio support (both Music and Sound)

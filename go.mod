@@ -1,4 +1,4 @@
-module forgejo.max7.fun/m.alkhatib/GoForge
+module github.com/ForgeLeaf/Forge
 
 go 1.24
 

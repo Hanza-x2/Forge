@@ -1,8 +1,8 @@
 package Graphics
 
 import (
-	Forge "forgejo.max7.fun/m.alkhatib/GoForge"
-	"forgejo.max7.fun/m.alkhatib/GoForge/Math"
+	"github.com/ForgeLeaf/Forge"
+	"github.com/ForgeLeaf/Forge/Math"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/mathgl/mgl32"
 	"log"

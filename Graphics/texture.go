@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"image"
 	"image/draw"
-	_ "image/jpeg"
-	_ "image/png"
 	"os"
 	"unsafe"
 

@@ -1,7 +1,7 @@
 package Forge
 
 import (
-	"forgejo.max7.fun/m.alkhatib/GoForge/Input"
+	"github.com/ForgeLeaf/Forge/Input"
 	"github.com/go-gl/gl/v3.3-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	"log"

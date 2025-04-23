@@ -1,8 +1,8 @@
 package Scene
 
 import (
-	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics"
-	"forgejo.max7.fun/m.alkhatib/GoForge/Graphics/Viewports"
+	"github.com/ForgeLeaf/Forge/Graphics"
+	"github.com/ForgeLeaf/Forge/Graphics/Viewports"
 )
 
 type Scene struct {
