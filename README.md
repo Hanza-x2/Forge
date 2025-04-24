@@ -48,4 +48,114 @@ are still working on polishing the API. Please check the [CHANGELOG](CHANGELOG.m
 for more information on the latest changes. The current version of the 
 framework is `0.0.8`, you may check the tags for other versions.
 
-(Tutorial is to be added soon)
+To get started with Forge, you can use (clone/fork) the [starter-template 
+repository](https://github.com/ForgeLeaf/ForgeStarterTemplate) 
+which contains a simple example of how to use the framework.
+
+You may clone the template using this command:
+```bash
+git clone https://github.com/ForgeLeaf/ForgeStarterTemplate.git
+```
+
+### Preparations & Building
+
+In order to run the example, you need to have Go installed on your machine.
+You can download Go from the official website: [golang.org](https://golang.org/dl/)
+
+Once you have Go installed, you can CD into the directory and 
+build the template using: 
+```bash
+go build .
+```
+
+Then you may run the executable using the following command
+**If you're on Linux or macOS**: 
+```bash
+./ForgeStarterTemplate
+```
+
+or, **if you're on Windows**: 
+```bash
+./ForgeStarterTemplate.exe
+```
+
+*If you'd like to build the final release executable, we'd recommend 
+the following command:*
+```bash
+go build -ldflags='-s -w -H=windowsgui' .
+```
+*This will build a smaller executable without the console window.*
+
+### The Code
+The code doesn't force you to use a specific style, all you 
+have to supply is an implementation of the `Forge.Application` 
+interface and an instance of the `DesktopConfiguration` struct.
+
+The main method may look like this:
+```go
+func main() {
+	if err := Forge.RunSafe(&Application{}, Forge.DefaultDesktopConfig()); err != nil {
+		panic(err)
+	}
+}
+```
+
+The `RunSafe` method will take care of initializing the framework, 
+creating the window, and running the main loop. Please make sure to 
+add this snippet of code to run the context on the main thread:
+```go
+func init() {
+	runtime.LockOSThread()
+}
+```
+
+The final code may look like this:
+```go
+package main
+
+import (
+	"github.com/ForgeLeaf/Forge"
+	"runtime"
+)
+
+type Application struct{}
+
+func (application *Application) Create(driver *Forge.Driver) {
+	// Initialization logic goes here
+}
+
+func (application *Application) Render(driver *Forge.Driver, delta float32) {
+	// Render logic goes here
+}
+
+func (application *Application) Resize(driver *Forge.Driver, width, height float32) {
+	// Resize logic goes here
+}
+
+func (application *Application) Destroy(driver *Forge.Driver) {
+	// Cleanup logic goes here
+}
+
+func init() {
+	runtime.LockOSThread()
+}
+
+func main() {
+	if err := Forge.RunSafe(&Application{}, Forge.DefaultDesktopConfig()); err != nil {
+		panic(err)
+	}
+}
+```
+
+## Issues & Suggestions
+If you encounter any issues while using Forge, please report 
+them here on GitHub. You can also suggest new features or improvements 
+to the framework. We are always looking for ways to improve
+the framework and make it better for everyone.
+
+## Contributing
+If you'd like to contribute to the project, please feel free to
+fork the repository and submit a pull request. We welcome
+any contributions, whether it's bug fixes, new features, or
+documentation improvements. As of now, we don't have a fixed 
+contribution guide, but we will be adding one in the future.
