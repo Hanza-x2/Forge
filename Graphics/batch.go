@@ -207,7 +207,7 @@ func (batch *Batch) Flush() {
 }
 
 func (batch *Batch) SetProjection(projection mgl32.Mat4) {
-	if !batch.drawing {
+	if batch.drawing {
 		batch.Flush()
 	}
 	batch.projection = projection
@@ -215,7 +215,7 @@ func (batch *Batch) SetProjection(projection mgl32.Mat4) {
 }
 
 func (batch *Batch) PushTransform(transform mgl32.Mat3) {
-	if !batch.drawing {
+	if batch.drawing {
 		batch.Flush()
 	}
 	batch.transform = transform
